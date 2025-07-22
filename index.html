@@ -2,73 +2,86 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1920, height=768">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
   <title>Jídelní lístek - Dnes</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      width: 1920px;
-      height: 768px;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
       background: linear-gradient(to right, #fdfbfb, #ebedee);
       font-family: sans-serif;
+      font-size: calc(0.8vw + 0.5vh);
     }
+
     .title {
-      height: 80px;
-      line-height: 80px;
-      font-size: 2.5rem;
-      text-align: center;
+      height: 10vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8vh;
       font-weight: bold;
       color: #2f855a;
     }
+
     .menu-wrapper {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      padding: 0 40px;
-      height: calc(768px - 80px);
+      height: 90vh;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(20vw, 1fr));
+      grid-auto-rows: minmax(20vh, auto);
+      gap: 1vh;
+      padding: 1vh 2vw;
       box-sizing: border-box;
     }
+
     .section {
-      margin-bottom: 10px;
-    }
-    .section h2 {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #d69e2e;
-      border-bottom: 2px solid #ecc94b;
-      margin: 6px 0;
-      text-transform: uppercase;
-    }
-    .food-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-      gap: 10px;
-    }
-    .item {
       background: white;
-      border-radius: 0.5rem;
-      padding: 8px 12px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-      font-size: 0.95rem;
+      border-radius: 0.8vh;
+      padding: 1vh 1vw;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
     }
+
+    .section h2 {
+      font-size: 2vh;
+      font-weight: bold;
+      color: #d69e2e;
+      border-bottom: 0.4vh solid #ecc94b;
+      margin-bottom: 1vh;
+      text-transform: uppercase;
+    }
+
+    .item {
+      font-size: 1.6vh;
+      padding-bottom: 0.8vh;
+      margin-bottom: 0.8vh;
+      border-bottom: 1px dashed #ccc;
+    }
+
     .name {
-      font-weight: 600;
+      font-weight: bold;
       color: #2d3748;
     }
+
     .info {
+      font-size: 1.4vh;
       color: #4a5568;
-      font-size: 0.8rem;
     }
+
     .price {
       text-align: right;
       font-weight: bold;
       color: #2f855a;
+    }
+
+    @media screen and (max-aspect-ratio: 4/3) {
+      .menu-wrapper {
+        grid-template-columns: repeat(auto-fit, minmax(40vw, 1fr));
+      }
     }
   </style>
   <script>
@@ -99,12 +112,9 @@
 
           const section = document.createElement('div');
           section.className = 'section';
-
           const header = document.createElement('h2');
           header.textContent = kategorie;
-
-          const list = document.createElement('div');
-          list.className = 'food-list';
+          section.appendChild(header);
 
           jidla.forEach(jidlo => {
             const item = document.createElement('div');
@@ -114,11 +124,9 @@
               <div class="info">${jidlo.gramaz} | Alergeny: ${jidlo.alergeny}</div>
               <div class="price">${jidlo.cena}</div>
             `;
-            list.appendChild(item);
+            section.appendChild(item);
           });
 
-          section.appendChild(header);
-          section.appendChild(list);
           container.appendChild(section);
         }
 
