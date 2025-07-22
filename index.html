@@ -25,6 +25,15 @@
       font-size: 2.8vh;
       font-weight: bold;
       color: #2f855a;
+      position: relative;
+    }
+
+    #logo {
+      position: absolute;
+      top: 1vh;
+      right: 2vw;
+      height: 7vh;
+      object-fit: contain;
     }
 
     .menu-wrapper {
@@ -144,7 +153,10 @@
   </script>
 </head>
 <body>
-  <div class="title">Denníí jídelní lístek</div>
+  <div class="title">
+    Denní jídelní lístek
+    <img id="logo" src="logo.png" alt="Logo">
+  </div>
   <div id="menu" class="menu-wrapper"></div>
 </body>
 </html>
