@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Tisk jídelního lístku</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      #export-buttons {
+        display: none;
+      }
+    }
+
+    body {
+      font-family: sans-serif;
+      background: white;
+      color: #1a202c;
+      margin: 0;
+      padding: 2rem;
+      box-sizing: border-box;
+      width: 210mm;
+      min-height: 297mm;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #2f855a;
+      margin-bottom: 2rem;
+    }
+
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(45%, 1fr));
+      gap: 1rem;
+    }
+
+    .section {
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+
+    .section h2 {
+      text-transform: uppercase;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #d69e2e;
+      border-bottom: 2px solid #ecc94b;
+      margin-bottom: 0.5rem;
+    }
+
+    .item {
+      margin-bottom: 0.75rem;
+    }
+
+    .name {
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: #2d3748;
+    }
+
+    .info {
+      font-size: 0.8rem;
+      color: #4a5568;
+    }
+
+    .price {
+      font-size: 0.85rem;
+      text-align: right;
+      font-weight: bold;
+      color: #2f855a;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      border-top: 1px solid #cbd5e0;
+      padding-top: 1rem;
+      font-size: 0.8rem;
+      text-align: center;
+      color: #4a5568;
+    }
+
+    #export-buttons {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      background-color: #2f855a;
+      color: white;
+      border: none;
+      border-radius: 0.3rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #276749;
+    }
+  </style>
+</head>
+<body>
+  <div id="export-buttons">
+    <button onclick="window.print()">Tisk / Uložit jako PDF</button>
+    <button onclick="saveAsImage()">Uložit jako obrázek</button>
+  </div>
+
+  <div class="title">Denní jídelní lístek</div>
+  <div id="menu" class="menu"></div>
+
+  <div class="footer">
+    Zemní práce RT s.r.o. &nbsp;|&nbsp; Velké Meziříčí, Česká republika<br>
+    Tel.: +420 777 123 456 &nbsp;|&nbsp; Web: www.zemniprace-rt.cz &nbsp;|&nbsp; IČO: 12345678
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    async function loadMenu() {
+      const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
+      const sheetName = 'Týden 1';
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+        const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
+
+        const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
+        const menu = rows.filter(r => r[0]?.toLowerCase() === dnes.toLowerCase());
+
+        const sekce = { 'Polévka': [], 'Hlavní jídlo': [], 'Bezmasé': [], 'Dezert': [] };
+        menu.forEach(([den, kategorie, nazev, gramaz, alergeny, cena]) => {
+          if (sekce[kategorie]) sekce[kategorie].push({ nazev, gramaz, alergeny, cena });
+        });
+
+        const container = document.getElementById('menu');
+        container.innerHTML = '';
+
+        for (const [kategorie, jidla] of Object.entries(sekce)) {
+          if (!jidla.length) continue;
+
+          const section = document.createElement('div');
+          section.className = 'section';
+          const header = document.createElement('h2');
+          header.textContent = kategorie;
+          section.appendChild(header);
+
+          jidla.forEach(jidlo => {
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.innerHTML = `
+              <div class="name">${jidlo.nazev}</div>
+              <div class="info">${jidlo.gramaz} | Alergeny: ${jidlo.alergeny}</div>
+              <div class="price">${jidlo.cena}</div>
+            `;
+            section.appendChild(item);
+          });
+
+          container.appendChild(section);
+        }
+
+        if (!container.innerHTML) {
+          container.innerHTML = '<p class="text-center text-red-600 text-xl">Pro dnešní den nejsou dostupná žádná jídla.</p>';
+        }
+      } catch (err) {
+        document.getElementById('menu').innerHTML = '<p class="text-center text-red-600 text-xl">Nepodařilo se načíst jídelní lístek.</p>';
+        console.error('Chyba:', err);
+      }
+    }
+
+    function saveAsImage() {
+      html2canvas(document.body).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'jidelni-listek.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    window.onload = loadMenu;
+  </script>
+</body>
+</html>
