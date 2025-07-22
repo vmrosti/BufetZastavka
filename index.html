@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1920, initial-scale=1.0" />
   <title>Jídelní lístek - Dnes</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <style>
     html, body {
       margin: 0;
@@ -12,61 +12,90 @@
       width: 1920px;
       height: 768px;
       overflow: hidden;
-      font-size: 1rem;
       background: linear-gradient(to right, #fdfbfb, #ebedee);
       font-family: sans-serif;
     }
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: auto 1fr;
-      gap: 0.5rem;
-      height: calc(768px - 100px);
-      padding: 1rem 2rem;
-      box-sizing: border-box;
-    }
+
     .title {
-      text-align: center;
+      height: 80px;
       font-size: 2.5rem;
       font-weight: bold;
       color: #2f855a;
-      height: 100px;
-      line-height: 100px;
+      text-align: center;
+      line-height: 80px;
     }
+
+    #menu {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      height: calc(768px - 80px);
+      padding: 0.5rem 2rem;
+      gap: 1rem;
+      box-sizing: border-box;
+    }
+
     .section {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      background: rgba(255,255,255,0.6);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      height: 100%;
       overflow: hidden;
     }
+
     .section h2 {
-      text-transform: uppercase;
       font-size: 1.2rem;
+      font-weight: bold;
       color: #d69e2e;
       border-bottom: 2px solid #ecc94b;
-      margin: 0;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      text-transform: uppercase;
     }
+
+    .scroll-area {
+      overflow-y: auto;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding-right: 0.3rem;
+    }
+
+    .scroll-area::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .scroll-area::-webkit-scrollbar-thumb {
+      background-color: #ccc;
+      border-radius: 3px;
+    }
+
     .item {
       background: white;
-      padding: 0.5rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      padding: 0.4rem;
+      border-radius: 0.4rem;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       font-size: 0.85rem;
     }
+
     .item .name {
       font-weight: bold;
       color: #2d3748;
     }
+
     .item .info {
-      color: #4a5568;
       font-size: 0.75rem;
+      color: #4a5568;
     }
+
     .item .price {
-      text-align: right;
       font-weight: bold;
+      text-align: right;
       color: #2f855a;
     }
   </style>
@@ -85,9 +114,17 @@
         const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
         const menu = rows.filter(r => r[0]?.toLowerCase() === dnes.toLowerCase());
 
-        const sekce = { 'Polévka': [], 'Hlavní jídlo': [], 'Bezmasé': [], 'Dezert': [] };
+        const sekce = {
+          'Polévka': [],
+          'Hlavní jídlo': [],
+          'Bezmasé': [],
+          'Dezert': []
+        };
+
         menu.forEach(([den, kategorie, nazev, gramaz, alergeny, cena]) => {
-          if (sekce[kategorie]) sekce[kategorie].push({ nazev, gramaz, alergeny, cena });
+          if (sekce[kategorie]) {
+            sekce[kategorie].push({ nazev, gramaz, alergeny, cena });
+          }
         });
 
         const container = document.getElementById('menu');
@@ -96,11 +133,11 @@
         for (const [kategorie, jidla] of Object.entries(sekce)) {
           const col = document.createElement('div');
           col.className = 'section';
-          const header = document.createElement('h2');
-          header.textContent = kategorie;
-          col.appendChild(header);
 
-          jidla.slice(0, 5).forEach(jidlo => {
+          col.innerHTML = `<h2>${kategorie}</h2><div class="scroll-area"></div>`;
+          const scroll = col.querySelector('.scroll-area');
+
+          jidla.forEach(jidlo => {
             const item = document.createElement('div');
             item.className = 'item';
             item.innerHTML = `
@@ -108,7 +145,7 @@
               <div class="info">${jidlo.gramaz} | Alergeny: ${jidlo.alergeny}</div>
               <div class="price">${jidlo.cena}</div>
             `;
-            col.appendChild(item);
+            scroll.appendChild(item);
           });
 
           container.appendChild(col);
@@ -122,12 +159,13 @@
         console.error('Chyba:', err);
       }
     }
+
     window.onload = loadMenu;
     setInterval(loadMenu, 300000);
   </script>
 </head>
 <body>
   <div class="title">Denní jídelní lístek</div>
-  <div id="menu" class="grid-container"></div>
+  <div id="menu"></div>
 </body>
 </html>
