@@ -1,96 +1,107 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <title>Tisk jídelního lístku</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Export - Jídelní lístek</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <style>
-    @media print {
-      #export-buttons {
-        display: none;
-      }
-    }
-
-    body {
+    html, body {
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
       font-family: sans-serif;
-      background: white;
-      color: #1a202c;
+      font-size: 0.9rem;
       margin: 0;
       padding: 2rem;
-      box-sizing: border-box;
       width: 210mm;
       min-height: 297mm;
+      box-sizing: border-box;
     }
 
     .title {
-      text-align: center;
+      height: 10vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 2rem;
       font-weight: bold;
       color: #2f855a;
-      margin-bottom: 2rem;
+      position: relative;
+      margin-bottom: 1rem;
     }
 
-    .menu {
+    #logo {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 60px;
+      object-fit: contain;
+    }
+
+    .menu-wrapper {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(45%, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(40%, 1fr));
+      grid-auto-rows: auto;
       gap: 1rem;
     }
 
     .section {
-      border: 1px solid #e2e8f0;
-      border-radius: 0.5rem;
+      background: white;
+      border-radius: 0.8vh;
       padding: 1rem;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
     }
 
     .section h2 {
-      text-transform: uppercase;
       font-size: 1rem;
       font-weight: bold;
       color: #d69e2e;
       border-bottom: 2px solid #ecc94b;
       margin-bottom: 0.5rem;
+      text-transform: uppercase;
     }
 
     .item {
-      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px dashed #ccc;
     }
 
     .name {
       font-weight: bold;
-      font-size: 0.95rem;
       color: #2d3748;
     }
 
     .info {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: #4a5568;
     }
 
     .price {
-      font-size: 0.85rem;
       text-align: right;
       font-weight: bold;
       color: #2f855a;
     }
 
     .footer {
-      margin-top: 3rem;
+      margin-top: 2rem;
       border-top: 1px solid #cbd5e0;
-      padding-top: 1rem;
-      font-size: 0.8rem;
+      padding-top: 0.7rem;
+      font-size: 0.85rem;
       text-align: center;
       color: #4a5568;
     }
 
     #export-buttons {
-      margin-bottom: 1rem;
       display: flex;
       justify-content: center;
       gap: 1rem;
+      margin-bottom: 1.5rem;
     }
 
-    button {
+    #export-buttons button {
       padding: 0.5rem 1rem;
       background-color: #2f855a;
       color: white;
@@ -99,23 +110,33 @@
       cursor: pointer;
     }
 
-    button:hover {
+    #export-buttons button:hover {
       background-color: #276749;
+    }
+
+    @media print {
+      #export-buttons {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
   <div id="export-buttons">
-    <button onclick="window.print()">Tisk / Uložit jako PDF</button>
+    <button onclick="window.print()">Tisk / PDF</button>
     <button onclick="saveAsImage()">Uložit jako obrázek</button>
   </div>
 
-  <div class="title">Denní jídelní lístek</div>
-  <div id="menu" class="menu"></div>
+  <div class="title">
+    Denní jídelní lístek
+    <img id="logo" src="logo3.png" alt="Logo" />
+  </div>
+
+  <div id="menu" class="menu-wrapper"></div>
 
   <div class="footer">
-    Zemní práce RT s.r.o. &nbsp;|&nbsp; Velké Meziříčí, Česká republika<br>
-    Tel.: +420 777 123 456 &nbsp;|&nbsp; Web: www.zemniprace-rt.cz &nbsp;|&nbsp; IČO: 12345678
+    Zemní práce RT s.r.o. &nbsp;|&nbsp; Velké Meziříčí, Česká republika<br />
+    Tel.: +420 777 123 456 &nbsp;|&nbsp; www.zemniprace-rt.cz &nbsp;|&nbsp; IČO: 12345678
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
