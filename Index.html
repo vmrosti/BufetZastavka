@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jídelní lístek - Dnes</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 1920px;
+      height: 768px;
+      overflow: hidden;
+      font-size: 1rem;
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
+      font-family: sans-serif;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: auto 1fr;
+      gap: 0.5rem;
+      height: calc(768px - 100px);
+      padding: 1rem 2rem;
+      box-sizing: border-box;
+    }
+    .title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #2f855a;
+      height: 100px;
+      line-height: 100px;
+    }
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      overflow: hidden;
+    }
+    .section h2 {
+      text-transform: uppercase;
+      font-size: 1.2rem;
+      color: #d69e2e;
+      border-bottom: 2px solid #ecc94b;
+      margin: 0;
+    }
+    .item {
+      background: white;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+    .item .name {
+      font-weight: bold;
+      color: #2d3748;
+    }
+    .item .info {
+      color: #4a5568;
+      font-size: 0.75rem;
+    }
+    .item .price {
+      text-align: right;
+      font-weight: bold;
+      color: #2f855a;
+    }
+  </style>
+  <script>
+    async function loadMenu() {
+      const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
+      const sheetName = 'Týden 1';
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+        const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
+
+        const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
+        const menu = rows.filter(r => r[0]?.toLowerCase() === dnes.toLowerCase());
+
+        const sekce = { 'Polévka': [], 'Hlavní jídlo': [], 'Bezmasé': [], 'Dezert': [] };
+        menu.forEach(([den, kategorie, nazev, gramaz, alergeny, cena]) => {
+          if (sekce[kategorie]) sekce[kategorie].push({ nazev, gramaz, alergeny, cena });
+        });
+
+        const container = document.getElementById('menu');
+        container.innerHTML = '';
+
+        for (const [kategorie, jidla] of Object.entries(sekce)) {
+          const col = document.createElement('div');
+          col.className = 'section';
+          const header = document.createElement('h2');
+          header.textContent = kategorie;
+          col.appendChild(header);
+
+          jidla.slice(0, 5).forEach(jidlo => {
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.innerHTML = `
+              <div class="name">${jidlo.nazev}</div>
+              <div class="info">${jidlo.gramaz} | Alergeny: ${jidlo.alergeny}</div>
+              <div class="price">${jidlo.cena}</div>
+            `;
+            col.appendChild(item);
+          });
+
+          container.appendChild(col);
+        }
+
+        if (!container.innerHTML) {
+          container.innerHTML = '<p class="text-center text-red-600 text-xl">Pro dnešní den nejsou dostupná žádná jídla.</p>';
+        }
+      } catch (err) {
+        document.getElementById('menu').innerHTML = '<p class="text-center text-red-600 text-xl">Nepodařilo se načíst jídelní lístek.</p>';
+        console.error('Chyba:', err);
+      }
+    }
+    window.onload = loadMenu;
+    setInterval(loadMenu, 300000);
+  </script>
+</head>
+<body>
+  <div class="title">Denní jídelní lístek</div>
+  <div id="menu" class="grid-container"></div>
+</body>
+</html>
