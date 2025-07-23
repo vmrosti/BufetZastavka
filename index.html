@@ -18,13 +18,18 @@
     }
 
     .menu-wrapper {
-      height: 90vh;
+      min-height: calc(100vh - 10vh);
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(20vw, 1fr));
       grid-auto-rows: minmax(20vh, auto);
       gap: 1vh;
       padding: 1vh 2vw;
       box-sizing: border-box;
+    }
+
+    #menu {
+      z-index: 0;
+      position: relative;
     }
 
     .section {
