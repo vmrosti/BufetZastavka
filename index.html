@@ -92,7 +92,10 @@
         const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
 
         const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
-        const menu = rows.filter(r => r[0]?.toLowerCase() === dnes.toLowerCase() && r[7]?.toLowerCase() === 'ano');
+        const menu = rows.filter(r =>
+          (r[0]?.toLowerCase() === dnes.toLowerCase() && r[7]?.toLowerCase() === 'ano') || // dnešní aktivní
+          (r[8]?.toLowerCase() === 'ano') // přenesená jídla
+        );
 
         const sekce = {
           'Polévka': [],
@@ -167,7 +170,7 @@
       updateDateTime();
       loadMenu();
       setInterval(updateDateTime, 10000);
-      setInterval(loadMenu, 300000);
+      setInterval(loadMenu, 60000);
     });
   </script>
 </body>
