@@ -98,12 +98,11 @@
           const prenest = r[8]?.toLowerCase();
         
           const jeDnes = den === dnes.toLowerCase() && aktivni === 'ano';
-          const jePřenesené = prenest === 'ano' && den !== 'Stálá nabídka'; // přenášíme jen z předchozích dnů, ne stálou nabídku
-          const jeStálaNabídka = den === 'Stálá nabídka' && aktivni === 'ano';
+          const jePřenesené = prenest === 'ano' && den !== 'stálá nabídka';
+          const jeStálaNabídka = den === 'stálá nabídka' && aktivni === 'ano';
         
           return jeDnes || jePřenesené || jeStálaNabídka;
         });
-
 
         const sekce = {
           'Polévka': [],
