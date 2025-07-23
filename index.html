@@ -18,8 +18,8 @@
     }
     .menu-wrapper {
       column-count: 3;
-      column-gap: 2vw;
-      padding: 2vh 2vw;
+      column-gap: 0.5vw;
+      padding: 1.5vh 2vw;
     }
     .section {
       break-inside: avoid;
@@ -27,7 +27,7 @@
       border-radius: 0.8vh;
       padding: 1vh 1vw;
       box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2vh;
+      margin-bottom: 1.2vh;
       display: flex;
       flex-direction: column;
     }
@@ -41,8 +41,8 @@
     }
     .item {
       font-size: 1.6vh;
-      padding-bottom: 0.8vh;
-      margin-bottom: 0.8vh;
+      padding-bottom: 0.5vh;
+      margin-bottom: 0.5vh;
       border-bottom: 1px dashed #ccc;
     }
     .name {
@@ -71,7 +71,7 @@
   </style>
 </head>
 <body class="bg-gray-50">
-  <header class="flex justify-between items-center px-6 py-3 bg-white text-gray-800 shadow-md sticky top-0 z-10">
+  <header class="flex justify-between items-center px-6 py-1 bg-white text-gray-800 shadow-md sticky top-0 z-10">
     <div id="datetime" class="text-sm sm:text-base font-mono text-gray-500"></div>
     <div class="text-xl sm:text-2xl font-bold tracking-wide uppercase">Denní jídelní lístek</div>    
     <img id="logo" src="logo5.png" alt="Logo" class="h-14 sm:h-16 ml-4">
@@ -96,10 +96,10 @@
 
         const sekce = {
           'Polévka': [],
-          'Hlavní jídlo': [],
-          'Bezmasá jídla na objednávku': [],
           'Jídla na objednávku': [],
           'Saláty': [],
+          'Hlavní jídlo': [],
+          'Bezmasá jídla na objednávku': [],          
           'Moučníky': []
         };
 
@@ -133,7 +133,7 @@
               <div class="info">${jidlo.gramaz} | Alergeny: ${jidlo.alergeny}</div>
               <div class="price">
                 ${kategorie === 'Polévka' && jidlo.cenaPul 
-                  ? `${jidlo.cena} Kč / ${jidlo.cenaPul} Kč` 
+                  ? `${jidlo.cena} Kč / 1/2 - ${jidlo.cenaPul} Kč` 
                   : `${jidlo.cena} Kč`}
               </div>
             `;
