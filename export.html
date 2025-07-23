@@ -145,101 +145,121 @@
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script>
-    const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
-    const sheetName = 'Týden 1';
-    let mode = 'denni'; // nebo 'tydenni'
+  const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
+  const sheetName = 'Týden 1';
+  let mode = 'denni'; // nebo 'tydenni'
 
-    async function loadData() {
-      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
-      const response = await fetch(url);
-      const text = await response.text();
-      const json = JSON.parse(text.substring(47).slice(0, -2));
-      const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
+  async function loadData() {
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+    const response = await fetch(url);
+    const text = await response.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
 
-      const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
-      const menuByDay = {};
+    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
+    const menuByDay = {};
 
-      rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
-        const denLower = den.toLowerCase();
+    rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
+      const denNormalized = den.trim().toLowerCase();
+      const isStala = denNormalized === 'stálá nabídka';
+
+      // rozhodni, jestli jídlo zobrazit
+      let zobrazit = false;
+      if (aktivni.toLowerCase() === 'ano') {
+        if (mode === 'denni') {
+          const jeDnes = denNormalized === dnes.toLowerCase();
+          const jePrenesene = prenest.toLowerCase() === 'ano' && !isStala;
+          const jeStala = isStala;
+
+          zobrazit = jeDnes || jePrenesene || jeStala;
+        } else {
+          // týdenní režim
+          zobrazit = !isStala;
+        }
+      }
+
+      if (zobrazit) {
         if (!menuByDay[den]) menuByDay[den] = {};
         if (!menuByDay[den][kategorie]) menuByDay[den][kategorie] = [];
+        menuByDay[den][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
+      }
+    });
 
-        if (mode === 'denni') {
-          const jeDnes = denLower === dnes.toLowerCase() && aktivni.toLowerCase() === 'ano';
-          const jePrenesene = prenest.toLowerCase() === 'ano' && denLower !== 'stálá nabídka';
-          const jeStala = denLower === 'stálá nabídka' && aktivni.toLowerCase() === 'ano';
+    render(menuByDay);
+  }
 
-          if (jeDnes || jePrenesene || jeStala) {
-            menuByDay[den][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
-          }
-        } else if (mode === 'tydenni') {
-          if (denLower !== 'stálá nabídka' && aktivni.toLowerCase() === 'ano') {
-            menuByDay[den][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
-          }
-        }
+  function render(menuByDay) {
+    const container = document.getElementById('menu');
+    container.innerHTML = '';
+
+    const daysOrder = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle', 'Stálá nabídka'];
+    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
+
+    daysOrder.forEach(den => {
+      const denData = menuByDay[den];
+      if (!denData) return;
+
+      // v denním režimu zobraz pouze dnešní den nebo "Stálá nabídka"
+      if (mode === 'denni' && den !== dnes && den !== 'Stálá nabídka') return;
+
+      // pokud den neobsahuje žádnou kategorii s jídly, přeskoč
+      const kategorieKeys = Object.keys(denData);
+      const maJidla = kategorieKeys.some(k => denData[k] && denData[k].length > 0);
+      if (!maJidla) return;
+
+      const denBlock = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'day-title';
+      title.textContent = den;
+      denBlock.appendChild(title);
+
+      kategorieKeys.forEach(kategorie => {
+        const jidla = denData[kategorie];
+        if (!jidla || jidla.length === 0) return;
+
+        const cat = document.createElement('div');
+        cat.className = 'item-block';
+
+        const catTitle = document.createElement('div');
+        catTitle.className = 'category';
+        catTitle.textContent = kategorie;
+        cat.appendChild(catTitle);
+
+        jidla.forEach(j => {
+          const item = document.createElement('div');
+          item.className = 'item';
+          item.innerHTML = `
+            <div class="name">${j.nazev}${j.gramaz ? ` (${j.gramaz})` : ''}${j.alergeny ? ` - A: ${j.alergeny}` : ''}</div>
+            <div class="price">
+              ${kategorie === 'Polévka' && j.cenaPul ? `${j.cena} Kč / ½ porce za ${j.cenaPul} Kč` : `${j.cena} Kč`}
+            </div>`;
+          cat.appendChild(item);
+        });
+
+        denBlock.appendChild(cat);
       });
 
-      render(menuByDay);
-    }
+      container.appendChild(denBlock);
+    });
+  }
 
-    function render(menuByDay) {
-      const container = document.getElementById('menu');
-      container.innerHTML = '';
+  function toggleMode() {
+    mode = mode === 'denni' ? 'tydenni' : 'denni';
+    document.querySelector('#export-buttons button').textContent = `Přepnout: ${mode === 'denni' ? 'Týdenní' : 'Denní'}`;
+    loadData();
+  }
 
-      const daysOrder = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle', 'Stálá nabídka'];
-      daysOrder.forEach(den => {
-        const denData = menuByDay[den];
-        if (!denData) return;
+  function downloadPNG() {
+    html2canvas(document.body).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `jidelni-listek-${mode}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+  }
 
-        const denBlock = document.createElement('div');
-        const title = document.createElement('div');
-        title.className = 'day-title';
-        title.textContent = den;
-        denBlock.appendChild(title);
-
-        for (const [kategorie, jidla] of Object.entries(denData)) {
-          const cat = document.createElement('div');
-          cat.className = 'item-block';
-
-          const catTitle = document.createElement('div');
-          catTitle.className = 'category';
-          catTitle.textContent = kategorie;
-          cat.appendChild(catTitle);
-
-          jidla.forEach(j => {
-            const item = document.createElement('div');
-            item.className = 'item';
-            item.innerHTML = `
-              <div class="name">${j.nazev}${j.gramaz ? ` (${j.gramaz})` : ''}${j.alergeny ? ` - A: ${j.alergeny}` : ''}</div>
-              <div class="price">
-                ${kategorie === 'Polévka' && j.cenaPul ? `${j.cena} Kč / ½ porce za ${j.cenaPul} Kč` : `${j.cena} Kč`}
-              </div>`;
-            cat.appendChild(item);
-          });
-
-          denBlock.appendChild(cat);
-        }
-
-        container.appendChild(denBlock);
-      });
-    }
-
-    function toggleMode() {
-      mode = mode === 'denni' ? 'tydenni' : 'denni';
-      loadData();
-    }
-
-    function downloadPNG() {
-      html2canvas(document.body).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `jidelni-listek-${mode}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-      });
-    }
-
-    window.onload = loadData;
-  </script>
+  window.onload = loadData;
+</script>
 </body>
 </html>
 
