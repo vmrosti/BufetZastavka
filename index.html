@@ -11,25 +11,19 @@
       padding: 0;
       width: 100vw;
       height: 100vh;
-      overflow: auto;
+      overflow-y: auto;
       background: linear-gradient(to right, #fdfbfb, #ebedee);
       font-family: sans-serif;
       font-size: calc(0.8vw + 0.5vh);
     }
 
     .menu-wrapper {
-      min-height: calc(100vh - 10vh);
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(20vw, 1fr));
       grid-auto-rows: minmax(20vh, auto);
       gap: 1vh;
       padding: 1vh 2vw;
       box-sizing: border-box;
-    }
-
-    #menu {
-      z-index: 0;
-      position: relative;
     }
 
     .section {
@@ -79,6 +73,16 @@
       }
     }
   </style>
+</head>
+<body class="bg-gray-50">
+  <header class="flex justify-between items-center px-6 py-3 bg-white text-gray-800 shadow-md sticky top-0 z-10">
+    <div class="text-xl sm:text-2xl font-bold tracking-wide">Denní jídelní lístek</div>
+    <div id="datetime" class="text-sm sm:text-base font-mono text-gray-500"></div>
+    <img id="logo" src="logo5.png" alt="Logo" class="h-10 sm:h-12 ml-4">
+  </header>
+
+  <div id="menu" class="menu-wrapper"></div>
+
   <script>
     async function loadMenu() {
       const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
@@ -133,27 +137,24 @@
         console.error('Chyba:', err);
       }
     }
-    function updateDateTime() {
-        const now = new Date();
-        const den = now.toLocaleDateString('cs-CZ', { weekday: 'long' });
-        const datum = now.toLocaleDateString('cs-CZ');
-        const cas = now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('datetime').textContent = `${den}, ${datum} ${cas}`;
-      }
-    
-      updateDateTime();
-      setInterval(updateDateTime, 10000); // aktualizace každých 10s
-    window.onload = loadMenu;
-    setInterval(loadMenu, 300000);
-  </script>
-</head>
-<body>
-  <header class="flex justify-between items-center px-8 py-4 bg-green-700 text-white shadow-md h-[10vh]">
-  <div class="text-3xl font-bold tracking-wide uppercase">Denní jídelní lístek</div>
-  <div id="datetime" class="text-right text-sm sm:text-base font-mono"></div>
-  <img id="logo" src="logo5.png" alt="Logo" class="h-14 sm:h-16 ml-4">
-</header>
 
-  <div id="menu" class="menu-wrapper"></div>
+    function updateDateTime() {
+      const now = new Date();
+      const den = now.toLocaleDateString('cs-CZ', { weekday: 'long' });
+      const datum = now.toLocaleDateString('cs-CZ');
+      const cas = now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+      const datetime = document.getElementById('datetime');
+      if (datetime) {
+        datetime.textContent = `${den}, ${datum} ${cas}`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateDateTime();
+      loadMenu();
+      setInterval(updateDateTime, 10000);
+      setInterval(loadMenu, 300000);
+    });
+  </script>
 </body>
 </html>
