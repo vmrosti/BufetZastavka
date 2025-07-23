@@ -147,16 +147,27 @@
         console.error('Chyba:', err);
       }
     }
-
+    function updateDateTime() {
+        const now = new Date();
+        const den = now.toLocaleDateString('cs-CZ', { weekday: 'long' });
+        const datum = now.toLocaleDateString('cs-CZ');
+        const cas = now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('datetime').textContent = `${den}, ${datum} ${cas}`;
+      }
+    
+      updateDateTime();
+      setInterval(updateDateTime, 10000); // aktualizace každých 10s
     window.onload = loadMenu;
     setInterval(loadMenu, 300000);
   </script>
 </head>
 <body>
-  <div class="title">
-    Denní jídelní lístek
-    <img id="logo" src="logo5.png" alt="Logo">
-  </div>
+  <header class="flex justify-between items-center px-8 py-4 bg-green-700 text-white shadow-md h-[10vh]">
+  <div class="text-3xl font-bold tracking-wide uppercase">Denní jídelní lístek</div>
+  <div id="datetime" class="text-right text-sm sm:text-base font-mono"></div>
+  <img id="logo" src="logo5.png" alt="Logo" class="h-14 sm:h-16 ml-4">
+</header>
+
   <div id="menu" class="menu-wrapper"></div>
 </body>
 </html>
