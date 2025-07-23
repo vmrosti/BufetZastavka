@@ -92,10 +92,18 @@
         const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
 
         const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
-        const menu = rows.filter(r =>
-          (r[0]?.toLowerCase() === dnes.toLowerCase() && r[7]?.toLowerCase() === 'ano') || // dnešní aktivní
-          (r[8]?.toLowerCase() === 'ano') // přenesená jídla
-        );
+        const menu = rows.filter(r => {
+          const den = r[0]?.toLowerCase();
+          const aktivni = r[7]?.toLowerCase();
+          const prenest = r[8]?.toLowerCase();
+        
+          const jeDnes = den === dnes.toLowerCase() && aktivni === 'ano';
+          const jePřenesené = prenest === 'ano' && den !== 'vždy'; // přenášíme jen z předchozích dnů, ne stálou nabídku
+          const jeStálaNabídka = den === 'vždy' && aktivni === 'ano';
+        
+          return jeDnes || jePřenesené || jeStálaNabídka;
+        });
+
 
         const sekce = {
           'Polévka': [],
