@@ -17,17 +17,17 @@
       font-size: calc(0.8vw + 0.5vh);
     }
     .menu-wrapper {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(20vw, 1fr));
-      gap: 1vh;
-      padding: 1vh 2vw;
-      box-sizing: border-box;
+      column-count: 3;
+      column-gap: 2vw;
+      padding: 2vh 2vw;
     }
     .section {
+      break-inside: avoid;
       background: white;
       border-radius: 0.8vh;
       padding: 1vh 1vw;
       box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2vh;
       display: flex;
       flex-direction: column;
     }
@@ -58,9 +58,14 @@
       font-weight: bold;
       color: #2f855a;
     }
-    @media screen and (max-aspect-ratio: 4/3) {
+    @media screen and (max-width: 1000px) {
       .menu-wrapper {
-        grid-template-columns: repeat(auto-fit, minmax(40vw, 1fr));
+        column-count: 2;
+      }
+    }
+    @media screen and (max-width: 700px) {
+      .menu-wrapper {
+        column-count: 1;
       }
     }
   </style>
@@ -118,8 +123,8 @@
 
           const dnesni = jidla.filter(j => !j.prenest || j.prenest.toLowerCase() !== 'ano');
           const prenesena = jidla.filter(j => j.prenest && j.prenest.toLowerCase() === 'ano');
-
           const renderItems = [...dnesni, ...prenesena];
+
           renderItems.forEach(jidlo => {
             const item = document.createElement('div');
             item.className = 'item';
@@ -127,7 +132,9 @@
               <div class="name">${jidlo.nazev}</div>
               <div class="info">${jidlo.gramaz} | Alergeny: ${jidlo.alergeny}</div>
               <div class="price">
-                ${kategorie === 'Polévka' && jidlo.cenaPul ? `${jidlo.cena} / ${jidlo.cenaPul}` : jidlo.cena}
+                ${kategorie === 'Polévka' && jidlo.cenaPul 
+                  ? `${jidlo.cena} Kč / ${jidlo.cenaPul} Kč` 
+                  : `${jidlo.cena} Kč`}
               </div>
             `;
             section.appendChild(item);
