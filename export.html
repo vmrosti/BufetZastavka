@@ -165,15 +165,14 @@
 
       // rozhodni, jestli jídlo zobrazit
       let zobrazit = false;
-      if (aktivni.toLowerCase() === 'ano') {
+      if (aktivni?.toLowerCase().trim() === 'ano') {
         if (mode === 'denni') {
-          const jeDnes = denNormalized === dnes.toLowerCase();
-          const jePrenesene = prenest.toLowerCase() === 'ano' && !isStala;
+          const jeDnes = denNormalized === dnes;
+          const jePrenesene = prenest?.toLowerCase().trim() === 'ano' && !isStala;
           const jeStala = isStala;
-
+      
           zobrazit = jeDnes || jePrenesene || jeStala;
         } else {
-          // týdenní režim
           zobrazit = !isStala;
         }
       }
