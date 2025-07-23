@@ -139,8 +139,8 @@
   <div id="menu" class="menu-wrapper"></div>
 
   <div class="footer">
-    Provozovna: U Příkladu 123, 594 01 Velké Meziříčí<br />
-    Telefon: +420 123 456 789 | Email: info@jidelnalistek.cz
+    Provozovna: Družstevní 1435, 594 01 Velké Meziříčí<br />
+    Telefon: 566 503 848 | Email: ondrej.rada.bufet@seznam.cz
   </div>
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -170,7 +170,6 @@
           const jeDnes = denNormalized === dnes.toLowerCase();
           const jePrenesene = prenest?.toLowerCase().trim() === 'ano' && !isStala;
           const jeStala = isStala;
-      
           zobrazit = jeDnes || jePrenesene || jeStala;
         } else {
           zobrazit = !isStala;
@@ -178,9 +177,9 @@
       }
 
       if (zobrazit) {
-        if (!menuByDay[den]) menuByDay[den] = {};
-        if (!menuByDay[den][kategorie]) menuByDay[den][kategorie] = [];
-        menuByDay[den][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
+        if (!menuByDay[denNormalized]) menuByDay[denNormalized] = {};
+        if (!menuByDay[denNormalized][kategorie]) menuByDay[denNormalized][kategorie] = [];
+        menuByDay[denNormalized][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
       }
     });
 
@@ -192,25 +191,22 @@
     container.innerHTML = '';
 
     const daysOrder = ['pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle', 'stálá nabídka'];
-    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
+    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
 
     daysOrder.forEach(den => {
       const denData = menuByDay[den];
       if (!denData) return;
 
       // v denním režimu zobraz pouze dnešní den nebo "Stálá nabídka"
-      if (mode === 'denni' && den !== dnes && den !== 'Stálá nabídka') return;
+      if (mode === 'denni' && den !== dnes && den !== 'stálá nabídka') return;
 
-      // pokud den neobsahuje žádnou kategorii s jídly, přeskoč
       const kategorieKeys = Object.keys(denData).filter(k => denData[k] && denData[k].length > 0);
       if (kategorieKeys.length === 0) return;
-      const maJidla = kategorieKeys.some(k => denData[k] && denData[k].length > 0);
-      if (!maJidla) return;
 
       const denBlock = document.createElement('div');
       const title = document.createElement('div');
       title.className = 'day-title';
-      title.textContent = den.charAt(0).toUpperCase() + den.slice(1); // zpátky kapitalizuj
+      title.textContent = den.charAt(0).toUpperCase() + den.slice(1);
       denBlock.appendChild(title);
 
       kategorieKeys.forEach(kategorie => {
@@ -250,10 +246,10 @@
     loadData();
   }
 
-    function updateTitle() {
-      const title = document.querySelector('.header h1');
-      title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
-    }
+  function updateTitle() {
+    const title = document.querySelector('.header h1');
+    title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
+  }
 
   function downloadPNG() {
     html2canvas(document.body).then(canvas => {
@@ -265,11 +261,11 @@
   }
 
   window.onload = () => {
-  updateTitle();
-  loadData();
-};
-
+    updateTitle();
+    loadData();
+  };
 </script>
+
 </body>
 </html>
 
