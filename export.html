@@ -1,38 +1,100 @@
-<!-- ZAČÁTEK -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Export jídelního lístku</title>
+  <title>Export - Jídelní lístek</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <style>
     html, body {
-      background: linear-gradient(to right, #fdfbfb, #ebedee);
+      background: white;
       font-family: 'Segoe UI', sans-serif;
+      font-size: 0.95rem;
       margin: 0;
-      padding: 2rem;
+      padding: 1.5rem;
+      width: 210mm;
+      min-height: 297mm;
       box-sizing: border-box;
     }
 
-    .title {
-      text-align: center;
-      font-size: 2rem;
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
       font-weight: bold;
       color: #2f855a;
-      margin-bottom: 1rem;
+      text-align: center;
     }
 
     #logo {
-      display: block;
-      margin: 0 auto 1rem;
       height: 60px;
       object-fit: contain;
     }
 
+    .menu-wrapper {
+      width: 100%;
+    }
+
+    .day-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #1a202c;
+      margin-top: 1.2rem;
+      margin-bottom: 0.6rem;
+      border-bottom: 2px solid #ecc94b;
+      padding-bottom: 0.3rem;
+    }
+
+    .item-block {
+      margin-bottom: 0.8rem;
+    }
+
+    .item-block .category {
+      font-weight: bold;
+      color: #d69e2e;
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+      font-size: 0.95rem;
+    }
+
+    .item {
+      margin-left: 1rem;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed #cbd5e0;
+      padding: 0.3rem 0;
+    }
+
+    .item .name {
+      font-weight: 500;
+      color: #2d3748;
+      max-width: 70%;
+    }
+
+    .item .price {
+      font-weight: bold;
+      color: #2f855a;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .footer {
+      margin-top: 2rem;
+      border-top: 1px solid #cbd5e0;
+      padding-top: 0.7rem;
+      font-size: 0.85rem;
+      text-align: center;
+      color: #4a5568;
+    }
+
     #export-buttons {
       display: flex;
-      flex-wrap: wrap;
       justify-content: center;
       gap: 1rem;
       margin-bottom: 1.5rem;
@@ -51,180 +113,133 @@
       background-color: #276749;
     }
 
-    .menu-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-    }
-
-    .day-block {
-      break-inside: avoid;
-      background: white;
-      border-radius: 0.8vh;
-      padding: 1rem;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .day-block h3 {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #d69e2e;
-      margin-bottom: 0.5rem;
-      border-bottom: 2px solid #ecc94b;
-    }
-
-    .item {
-      font-size: 1rem;
-      margin-bottom: 0.6rem;
-    }
-
-    .name {
-      font-weight: bold;
-      color: #2d3748;
-    }
-
-    .price {
-      text-align: right;
-      font-weight: bold;
-      color: #2f855a;
-    }
-
-    .footer {
-      margin-top: 2rem;
-      border-top: 1px solid #cbd5e0;
-      padding-top: 0.7rem;
-      font-size: 0.9rem;
-      text-align: center;
-      color: #4a5568;
-    }
-
     @media print {
       #export-buttons {
         display: none;
       }
-    }
-
-    @media screen and (max-width: 768px) {
-      .item {
-        font-size: 0.95rem;
+      html, body {
+        padding: 0.5rem;
+        font-size: 0.85rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="title">Jídelní lístek</div>
-  <img id="logo" src="logo5.png" alt="Logo" />
+  <div class="header">
+    <img id="logo" src="logo5.png" alt="Logo" />
+    <h1>Jídelní lístek</h1>
+  </div>
 
   <div id="export-buttons">
-    <button onclick="renderDaily()">Denní nabídka</button>
-    <button onclick="renderWeekly()">Týdenní nabídka</button>
-    <button onclick="window.print()">Tisk / PDF</button>
+    <button onclick="toggleMode()">Přepnout: Denní / Týdenní</button>
+    <button onclick="window.print()">Tisknout jako PDF</button>
+    <button onclick="downloadPNG()">Uložit jako obrázek (PNG)</button>
   </div>
 
   <div id="menu" class="menu-wrapper"></div>
 
   <div class="footer">
-    Bufet U Zastávky &nbsp;|&nbsp; Družstevní 1435, 594 01 Velké Meziříčí &nbsp;|&nbsp; ondrej.rada.bufet@seznam.cz<br /> 
-    Tel.: 566 503 848 &nbsp;|&nbsp; https://www.obchodyvm.cz/bufet-u-zastavky &nbsp;|&nbsp; IČO: 22139630
+    Provozovna: U Příkladu 123, 594 01 Velké Meziříčí<br />
+    Telefon: +420 123 456 789 | Email: info@jidelnalistek.cz
   </div>
 
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script>
-    const SHEET_ID = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
-    const SHEET_NAME = 'Týden 1';
+    const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
+    const sheetName = 'Týden 1';
+    let mode = 'denni'; // nebo 'tydenni'
 
-    async function fetchSheet() {
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const res = await fetch(url);
-      const text = await res.text();
+    async function loadData() {
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+      const response = await fetch(url);
+      const text = await response.text();
       const json = JSON.parse(text.substring(47).slice(0, -2));
-      return json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
-    }
+      const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
 
-    function formatPrice(j) {
-      if (j.cenaPul && j.cenaPul !== '') {
-        return `${j.cena} Kč / ½ za ${j.cenaPul} Kč`;
-      }
-      return `${j.cena} Kč`;
-    }
+      const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
+      const menuByDay = {};
 
-    function createItem(j) {
-      return `
-        <div class="item">
-          <div class="name">${j.nazev}</div>
-          ${j.gramaz ? `<div class="info">${j.gramaz}</div>` : ''}
-          <div class="price">${formatPrice(j)}</div>
-        </div>
-      `;
-    }
+      rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
+        const denLower = den.toLowerCase();
+        if (!menuByDay[den]) menuByDay[den] = {};
+        if (!menuByDay[den][kategorie]) menuByDay[den][kategorie] = [];
 
-    async function renderDaily() {
-      const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
-      const rows = await fetchSheet();
-      const jidla = rows.filter(r =>
-        (r[0]?.toLowerCase() === dnes && r[7]?.toLowerCase() === 'ano') ||
-        (r[8]?.toLowerCase() === 'ano' && r[0]?.toLowerCase() !== 'stálá nabídka') ||
-        (r[0]?.toLowerCase() === 'stálá nabídka' && r[7]?.toLowerCase() === 'ano')
-      );
+        if (mode === 'denni') {
+          const jeDnes = denLower === dnes.toLowerCase() && aktivni.toLowerCase() === 'ano';
+          const jePrenesene = prenest.toLowerCase() === 'ano' && denLower !== 'stálá nabídka';
+          const jeStala = denLower === 'stálá nabídka' && aktivni.toLowerCase() === 'ano';
 
-      const container = document.getElementById('menu');
-      container.innerHTML = '';
-      const blok = document.createElement('div');
-      blok.className = 'day-block';
-
-      const nadpis = document.createElement('h3');
-      const dnesDatum = new Date().toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' });
-      nadpis.textContent = dnesDatum;
-      blok.appendChild(nadpis);
-
-      jidla.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul]) => {
-        blok.innerHTML += createItem({ nazev, gramaz, cena, cenaPul });
+          if (jeDnes || jePrenesene || jeStala) {
+            menuByDay[den][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
+          }
+        } else if (mode === 'tydenni') {
+          if (denLower !== 'stálá nabídka' && aktivni.toLowerCase() === 'ano') {
+            menuByDay[den][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
+          }
+        }
       });
 
-      container.appendChild(blok);
+      render(menuByDay);
     }
 
-    async function renderWeekly() {
-      const rows = await fetchSheet();
+    function render(menuByDay) {
       const container = document.getElementById('menu');
       container.innerHTML = '';
 
-      const dny = ['pondělí','úterý','středa','čtvrtek','pátek'];
+      const daysOrder = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle', 'Stálá nabídka'];
+      daysOrder.forEach(den => {
+        const denData = menuByDay[den];
+        if (!denData) return;
 
-      const skupiny = {};
-      rows.forEach(([den, , nazev, gramaz, cena, cenaPul, , aktivni]) => {
-        const kluc = den?.toLowerCase();
-        if (!dny.includes(kluc) || aktivni?.toLowerCase() !== 'ano') return;
-        if (!skupiny[kluc]) skupiny[kluc] = [];
-        skupiny[kluc].push({ nazev, gramaz, cena, cenaPul });
-      });
+        const denBlock = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'day-title';
+        title.textContent = den;
+        denBlock.appendChild(title);
 
-      const formatter = new Intl.DateTimeFormat('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' });
-      const dnes = new Date();
-      const dnesniTyzden = Array.from({ length: 5 }, (_, i) => {
-        const d = new Date(dnes);
-        d.setDate(d.getDate() - d.getDay() + 1 + i);
-        return d;
-      });
+        for (const [kategorie, jidla] of Object.entries(denData)) {
+          const cat = document.createElement('div');
+          cat.className = 'item-block';
 
-      dny.forEach((den, idx) => {
-        if (!skupiny[den]) return;
-        const blok = document.createElement('div');
-        blok.className = 'day-block';
+          const catTitle = document.createElement('div');
+          catTitle.className = 'category';
+          catTitle.textContent = kategorie;
+          cat.appendChild(catTitle);
 
-        const header = document.createElement('h3');
-        header.textContent = formatter.format(dnesniTyzden[idx]);
-        blok.appendChild(header);
+          jidla.forEach(j => {
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.innerHTML = `
+              <div class="name">${j.nazev}${j.gramaz ? ` (${j.gramaz})` : ''}${j.alergeny ? ` - A: ${j.alergeny}` : ''}</div>
+              <div class="price">
+                ${kategorie === 'Polévka' && j.cenaPul ? `${j.cena} Kč / ½ porce za ${j.cenaPul} Kč` : `${j.cena} Kč`}
+              </div>`;
+            cat.appendChild(item);
+          });
 
-        skupiny[den].forEach(j => {
-          blok.innerHTML += createItem(j);
-        });
+          denBlock.appendChild(cat);
+        }
 
-        container.appendChild(blok);
+        container.appendChild(denBlock);
       });
     }
 
-    window.onload = renderDaily;
+    function toggleMode() {
+      mode = mode === 'denni' ? 'tydenni' : 'denni';
+      loadData();
+    }
+
+    function downloadPNG() {
+      html2canvas(document.body).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `jidelni-listek-${mode}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+    window.onload = loadData;
   </script>
 </body>
 </html>
-<!-- KONEC -->
+
