@@ -156,7 +156,7 @@
     const json = JSON.parse(text.substring(47).slice(0, -2));
     const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
 
-    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
+    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
     const menuByDay = {};
 
     rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
@@ -167,7 +167,7 @@
       let zobrazit = false;
       if (aktivni?.toLowerCase().trim() === 'ano') {
         if (mode === 'denni') {
-          const jeDnes = denNormalized === dnes;
+          const jeDnes = denNormalized === dnes.toLowerCase();
           const jePrenesene = prenest?.toLowerCase().trim() === 'ano' && !isStala;
           const jeStala = isStala;
       
@@ -191,7 +191,7 @@
     const container = document.getElementById('menu');
     container.innerHTML = '';
 
-    const daysOrder = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle', 'Stálá nabídka'];
+    const daysOrder = ['pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle', 'stálá nabídka'];
     const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
 
     daysOrder.forEach(den => {
@@ -210,7 +210,7 @@
       const denBlock = document.createElement('div');
       const title = document.createElement('div');
       title.className = 'day-title';
-      title.textContent = den;
+      title.textContent = den.charAt(0).toUpperCase() + den.slice(1); // zpátky kapitalizuj
       denBlock.appendChild(title);
 
       kategorieKeys.forEach(kategorie => {
