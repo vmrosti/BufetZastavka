@@ -203,7 +203,8 @@
       if (mode === 'denni' && den !== dnes && den !== 'Stálá nabídka') return;
 
       // pokud den neobsahuje žádnou kategorii s jídly, přeskoč
-      const kategorieKeys = Object.keys(denData);
+      const kategorieKeys = Object.keys(denData).filter(k => denData[k] && denData[k].length > 0);
+      if (kategorieKeys.length === 0) return;
       const maJidla = kategorieKeys.some(k => denData[k] && denData[k].length > 0);
       if (!maJidla) return;
 
@@ -245,9 +246,15 @@
 
   function toggleMode() {
     mode = mode === 'denni' ? 'tydenni' : 'denni';
+    updateTitle();
     document.querySelector('#export-buttons button').textContent = `Přepnout: ${mode === 'denni' ? 'Týdenní' : 'Denní'}`;
     loadData();
   }
+
+    function updateTitle() {
+      const title = document.querySelector('.header h1');
+      title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
+    }
 
   function downloadPNG() {
     html2canvas(document.body).then(canvas => {
@@ -258,7 +265,11 @@
     });
   }
 
-  window.onload = loadData;
+  window.onload = () => {
+  updateTitle();
+  loadData();
+};
+
 </script>
 </body>
 </html>
