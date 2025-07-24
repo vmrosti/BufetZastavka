@@ -302,38 +302,33 @@ function downloadCleanPDF() {
   const source = document.getElementById('capture-area');
   const clone = source.cloneNode(true);
 
-  // Připrav wrapper s přesným rozměrem A4 a vystředěním obsahu
+  // Vytvoříme kontejner A4 velikosti a použijeme flexbox
   const wrapper = document.createElement('div');
   wrapper.style.width = '210mm';
   wrapper.style.height = '297mm';
-  wrapper.style.margin = '0 auto';
-  wrapper.style.padding = '0';
-  wrapper.style.boxSizing = 'border-box';
   wrapper.style.background = 'white';
   wrapper.style.display = 'flex';
   wrapper.style.flexDirection = 'column';
-  wrapper.style.justifyContent = 'space-between'; // zajistí footer dole
-  wrapper.style.alignItems = 'center';
-  wrapper.style.position = 'relative';
+  wrapper.style.justifyContent = 'flex-start';
+  wrapper.style.boxSizing = 'border-box';
+  wrapper.style.padding = '15mm';
   wrapper.style.overflow = 'hidden';
 
-  // Uprav styl vnitřního klonu
-  clone.style.margin = '0';
-  clone.style.padding = '0';
-  clone.style.width = '100%';
+  // Uprav vnitřní blok, aby zabíral zbytek prostoru kromě footeru
+  const content = document.createElement('div');
+  content.style.flex = '1 1 auto';
+  content.appendChild(clone.querySelector('.header'));
+  content.appendChild(clone.querySelector('#menu'));
 
-  // Zajisti že footer bude správně zarovnaný
   const footer = clone.querySelector('.footer');
   if (footer) {
-    footer.style.position = 'relative';
-    footer.style.bottom = '0';
-    footer.style.left = '0';
-    footer.style.right = '0';
-    footer.style.width = '100%';
-    footer.style.marginTop = 'auto';
+    footer.style.flex = '0 0 auto';
+    footer.style.textAlign = 'center';
+    footer.style.marginTop = '1rem';
   }
 
-  wrapper.appendChild(clone);
+  wrapper.appendChild(content);
+  if (footer) wrapper.appendChild(footer);
 
   const opt = {
     margin: 0,
@@ -366,8 +361,6 @@ function downloadCleanPDF() {
       showElementsAfterExport();
     });
 }
-
-
   
     function downloadWord() {
       hideElementsForExport();
