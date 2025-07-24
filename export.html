@@ -302,24 +302,35 @@ function downloadCleanPDF() {
   const source = document.getElementById('capture-area');
   const clone = source.cloneNode(true);
 
-  // Připravíme wrapper o velikosti A4
+  // Připrav wrapper s přesným rozměrem A4 a vystředěním obsahu
   const wrapper = document.createElement('div');
   wrapper.style.width = '210mm';
-  wrapper.style.minHeight = '297mm';
+  wrapper.style.height = '297mm';
   wrapper.style.margin = '0 auto';
-  wrapper.style.padding = '10mm';
+  wrapper.style.padding = '0';
   wrapper.style.boxSizing = 'border-box';
   wrapper.style.background = 'white';
-  wrapper.style.position = 'relative'; // pro footer
+  wrapper.style.display = 'flex';
+  wrapper.style.flexDirection = 'column';
+  wrapper.style.justifyContent = 'space-between'; // zajistí footer dole
+  wrapper.style.alignItems = 'center';
+  wrapper.style.position = 'relative';
+  wrapper.style.overflow = 'hidden';
 
-  // Posuneme footer dolů
+  // Uprav styl vnitřního klonu
+  clone.style.margin = '0';
+  clone.style.padding = '0';
+  clone.style.width = '100%';
+
+  // Zajisti že footer bude správně zarovnaný
   const footer = clone.querySelector('.footer');
   if (footer) {
-    footer.style.position = 'absolute';
-    footer.style.bottom = '10mm';
-    footer.style.left = '10mm';
-    footer.style.right = '10mm';
-    footer.style.width = 'calc(100% - 20mm)';
+    footer.style.position = 'relative';
+    footer.style.bottom = '0';
+    footer.style.left = '0';
+    footer.style.right = '0';
+    footer.style.width = '100%';
+    footer.style.marginTop = 'auto';
   }
 
   wrapper.appendChild(clone);
@@ -348,13 +359,14 @@ function downloadCleanPDF() {
     .from(wrapper)
     .save()
     .then(() => {
-      showElementsAfterExport(); // vrátí tlačítka
+      showElementsAfterExport();
     })
     .catch(err => {
       console.error('Chyba při exportu PDF:', err);
       showElementsAfterExport();
     });
 }
+
 
   
     function downloadWord() {
