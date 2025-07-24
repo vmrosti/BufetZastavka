@@ -336,26 +336,43 @@ function downloadCleanPDF() {
 }
 
     function downloadWord() {
-      hideElementsForExport();
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = `
-          ${document.querySelector('.header').outerHTML}
-          ${document.querySelector('#menu').outerHTML}
-          ${document.querySelector('.footer').outerHTML}
-        `;
-      
-        const html = `
-          <html xmlns:o='urn:schemas-microsoft-com:office:office'
-                xmlns:w='urn:schemas-microsoft-com:office:word'
-                xmlns='http://www.w3.org/TR/REC-html40'>
-          <head><meta charset='utf-8'></head><body>${wrapper.innerHTML}</body></html>`;
-      
-        const blob = new Blob([html], { type: 'application/msword' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `jidelni-listek.doc`;
-        link.click();
-      }
+  hideElementsForExport();
+
+  const content = document.getElementById('capture-area').cloneNode(true);
+
+  // Vlož aktuální styly
+  const styles = `
+    <style>
+      body { font-family: 'Segoe UI', sans-serif; font-size: 14px; }
+      .header { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: .5rem; }
+      .header h1 { font-size: 1.8rem; font-weight: bold; color: #2f855a; text-align: center; }
+      .day-title { font-size: 1.1rem; font-weight: bold; color: #1a202c; border-bottom: 2px solid #ecc94b; padding-bottom: 0.3rem; margin-top: .2rem; margin-bottom: 0.2rem; }
+      .item-block { margin-bottom: 0.4rem; }
+      .category { font-weight: bold; color: #d69e2e; margin-bottom: 0.1rem; text-transform: uppercase; font-size: 0.95rem; }
+      .item { margin-left: 1rem; display: flex; justify-content: space-between; border-bottom: 1px dashed #cbd5e0; padding: 0.1rem 0; }
+      .item .name { font-weight: 500; color: #2d3748; max-width: 70%; }
+      .item .price { font-weight: bold; color: #2f855a; text-align: right; white-space: nowrap; }
+      .footer { text-align: center; font-size: 0.85rem; color: #4a5568; border-top: 1px solid #cbd5e0; padding-top: 0.5rem; margin-top: 1rem; }
+      img { height: 60px; object-fit: contain; }
+    </style>
+  `;
+
+  const html = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office'
+          xmlns:w='urn:schemas-microsoft-com:office:word'
+          xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'>${styles}</head>
+    <body>${content.innerHTML}</body></html>`;
+
+  const blob = new Blob([html], { type: 'application/msword' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `jidelni-listek-${mode}.doc`;
+  link.click();
+
+  showElementsAfterExport();
+}
+
         
       function downloadStyledExcel() {
         hideElementsForExport();
