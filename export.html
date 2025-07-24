@@ -293,9 +293,21 @@
         .forEach(el => el.style.display = '');
     }
 
-   function downloadCleanPDF() {
-     hideElementsForExport();
+  function downloadCleanPDF() {
+      hideElementsForExport();
+    
       const element = document.getElementById('capture-area').cloneNode(true);
+    
+      // Vytvoř obal pro A4 s vystředěním a paddingem
+      const wrapper = document.createElement('div');
+      wrapper.style.width = '210mm';
+      wrapper.style.minHeight = '297mm';
+      wrapper.style.margin = '0 auto';
+      wrapper.style.padding = '10mm';
+      wrapper.style.boxSizing = 'border-box';
+      wrapper.style.background = 'white';
+    
+      wrapper.appendChild(element);
     
       const opt = {
         margin: 0,
@@ -304,17 +316,28 @@
         html2canvas: {
           scale: 2,
           useCORS: true,
-          windowWidth: 800 // nebo šířka odpovídající CSS max-width
+          scrollX: 0,
+          scrollY: 0
         },
         jsPDF: {
           unit: 'mm',
           format: 'a4',
           orientation: 'portrait'
         },
-        pagebreak: { mode: ['avoid-all'] } // žádné zalamování
+        pagebreak: { mode: ['avoid-all', 'css'] }
       };
     
-      html2pdf().set(opt).from(element).save();
+      html2pdf()
+        .set(opt)
+        .from(wrapper)
+        .save()
+        .then(() => {
+          showElementsAfterExport();
+        })
+        .catch(err => {
+          console.error('Chyba při exportu PDF:', err);
+          showElementsAfterExport();
+        });
     }
   
     function downloadWord() {
@@ -397,6 +420,7 @@
       
           // Zobraz tlačítka zpátky
           buttons.style.display = 'flex';
+          showElementsAfterExport();
         });
       }
   
