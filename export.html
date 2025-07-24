@@ -13,7 +13,7 @@
       margin: 0;
       padding: 1rem;
       /*width: 210mm;*/
-      min-height: 297mm;
+      /*min-height: 297mm;*/
       box-sizing: border-box;
     }
 
@@ -23,6 +23,9 @@
           height: 297mm;
           margin: 0;
           padding: 0;
+        }
+        #export-buttons {
+          display: none !important;
         }
       }
 
@@ -56,10 +59,11 @@
 
     .menu-wrapper {
       width: 100%;
-      max-width: 800px;
+      /*max-width: 800px;*/
       margin: 0 auto; /* vystředění */
-      background: white;
+      /*background: white;*/
       padding: 1rem;
+      box-sizing: border-box;
     }
 
     .day-title {
@@ -278,7 +282,19 @@
       const title = document.querySelector('.header h1');
       title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
     }
+
+  function hideElementsForExport() {
+      document.querySelectorAll('#export-buttons, button, .no-export')
+        .forEach(el => el.style.display = 'none');
+    }
+    
+    function showElementsAfterExport() {
+      document.querySelectorAll('#export-buttons, button, .no-export')
+        .forEach(el => el.style.display = '');
+    }
+
    function downloadCleanPDF() {
+     hideElementsForExport();
       const element = document.getElementById('capture-area').cloneNode(true);
     
       const opt = {
@@ -302,6 +318,7 @@
     }
   
     function downloadWord() {
+      hideElementsForExport();
         const wrapper = document.createElement('div');
         wrapper.innerHTML = `
           ${document.querySelector('.header').outerHTML}
@@ -323,6 +340,7 @@
       }
         
       function downloadStyledExcel() {
+        hideElementsForExport();
           const wrapper = document.createElement('div');
           wrapper.innerHTML = `
             ${document.querySelector('.header').outerHTML}
@@ -361,6 +379,7 @@
         }
   
     function downloadPNG() {
+      hideElementsForExport();
         const target = document.getElementById('capture-area');
         const buttons = document.getElementById('export-buttons');
         
