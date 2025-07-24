@@ -185,7 +185,21 @@
     const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
     const sheetName = 'Týden 1';
     let mode = 'denni'; // nebo 'tydenni'
-  
+
+    let dataSource = 'google';
+
+      async function loadConfig() {
+        try {
+          const response = await fetch('config.json?_=' + new Date().getTime()); // zamezí cache
+          const config = await response.json();
+          dataSource = config.source || 'google';
+        } catch (err) {
+          console.warn('Nepodařilo se načíst config.json, přepínám na Google Sheets.');
+          dataSource = 'google';
+        }
+      }
+
+      
     async function loadData() {
       const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
       const response = await fetch(url);
