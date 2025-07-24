@@ -39,6 +39,10 @@
 
     .menu-wrapper {
       width: 100%;
+      max-width: 800px;
+      margin: 0 auto; /* vystředění */
+      background: white;
+      padding: 1rem;
     }
 
     .day-title {
@@ -298,17 +302,20 @@
       XLSX.utils.book_append_sheet(wb, ws, "Jídelní lístek");
       XLSX.writeFile(wb, "jidelni-listek.xlsx");
     }
-
-
-
+    
   function downloadPNG() {
-    html2canvas(document.body).then(canvas => {
-      const link = document.createElement('a');
-      link.download = `jidelni-listek-${mode}.png`;
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  }
+      const menuElement = document.getElementById('menu');
+      html2canvas(menuElement, {
+        backgroundColor: '#ffffff',
+        scale: 2 // lepší kvalita
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `jidelni-listek-${mode}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
 
   window.onload = () => {
     updateTitle();
