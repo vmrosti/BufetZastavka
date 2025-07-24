@@ -161,6 +161,8 @@
       <button onclick="downloadWord()">Exportovat do Wordu</button>
       <button onclick="downloadCleanPDF()">Exportovat čisté PDF</button>
       <button onclick="downloadStyledExcel()">Exportovat do Excelu (stylovaný)</button> 
+      <button onclick="aktualizovat()">Aktualizovat z GitHubu</button>
+      <div id="vysledek"></div>
     </div>
   <div id="capture-area">
     <div class="header">
@@ -280,7 +282,14 @@
       document.querySelector('#export-buttons button').textContent = `Přepnout: ${mode === 'denni' ? 'Týdenní' : 'Denní'}`;
       loadData();
     }
-  
+
+    function aktualizovat() {
+        fetch("http://localhost:8000/update", { method: "POST" })
+            .then(res => res.text())
+            .then(msg => document.getElementById("vysledek").innerText = msg)
+            .catch(err => document.getElementById("vysledek").innerText = "Chyba: " + err);
+    }
+      
     function updateTitle() {
       const title = document.querySelector('.header h1');
       title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
