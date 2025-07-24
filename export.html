@@ -12,10 +12,19 @@
       font-size: 0.95rem;
       margin: 0;
       padding: 1rem;
-      width: 210mm;
+      /*width: 210mm;*/
       min-height: 297mm;
       box-sizing: border-box;
     }
+
+    @media print {
+        body {
+          width: 210mm;
+          height: 297mm;
+          margin: 0;
+          padding: 0;
+        }
+      }
 
     .header {
       display: flex;
@@ -33,7 +42,8 @@
     }
 
     #capture-area {
-      max-width: 800px;
+      /*max-width: 800px;*/
+      width: 190mm;
       margin: 0 auto;
       padding: 1rem;
       background: white;
@@ -137,22 +147,18 @@
   </style>
 </head>
 <body>
-  <div id="capture-area">
-    <div class="header">
-      <img id="logo" src="logo5.png" alt="Logo" />
-      <h1>Jídelní lístek</h1>
-    </div>
-  
     <div id="export-buttons">
       <button onclick="toggleMode()">Přepnout: Denní / Týdenní</button>
       <button onclick="window.print()">Tisknout jako PDF</button>
       <button onclick="downloadPNG()">Uložit jako obrázek (PNG)</button>
       <button onclick="downloadWord()">Exportovat do Wordu</button>
-      <button onclick="downloadExcel()">Exportovat do Excelu</button>
       <button onclick="downloadCleanPDF()">Exportovat čisté PDF</button>
-      <button onclick="downloadStyledExcel()">Exportovat do Excelu (stylovaný)</button>
-  
-  
+      <button onclick="downloadStyledExcel()">Exportovat do Excelu (stylovaný)</button> 
+    </div>
+  <div id="capture-area">
+    <div class="header">
+      <img id="logo" src="logo5.png" alt="Logo" />
+      <h1>Jídelní lístek</h1>
     </div>
   
     <div id="menu" class="menu-wrapper"></div>
@@ -272,25 +278,28 @@
       const title = document.querySelector('.header h1');
       title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
     }
-    function downloadCleanPDF() {
-        const element = document.body.cloneNode(true);
-      
-        // Skryj tlačítka
-        const buttons = element.querySelector('#export-buttons');
-        if (buttons) buttons.remove();
-      
-        // Připrav konfiguraci
-        const opt = {
-          margin:       [1, 1, 1.5, 1],
-          filename:     `jidelni-listek-${mode}.pdf`, // horní, pravý, spodní, levý (v cm)
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2 },
-          jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
-        };
-      
-        html2pdf().from(element).set(opt).save();
-      }
-  
+   function downloadCleanPDF() {
+      const element = document.getElementById('capture-area').cloneNode(true);
+    
+      const opt = {
+        margin: 0,
+        filename: `jidelni-listek-${mode}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          windowWidth: 800 // nebo šířka odpovídající CSS max-width
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: { mode: ['avoid-all'] } // žádné zalamování
+      };
+    
+      html2pdf().set(opt).from(element).save();
+    }
   
     function downloadWord() {
         const wrapper = document.createElement('div');
@@ -312,83 +321,65 @@
         link.download = `jidelni-listek.doc`;
         link.click();
       }
-      
-      function downloadExcel() {
-        const wb = XLSX.utils.book_new();
-        const data = [];
-      
-        const container = document.getElementById('menu');
-        const dayBlocks = container.querySelectorAll('.day-title');
-      
-        dayBlocks.forEach(dayTitle => {
-          const den = dayTitle.textContent.trim();
-          data.push([den]); // název dne jako oddělovač
-      
-          const items = dayTitle.parentElement.querySelectorAll('.item');
-          items.forEach(item => {
-            const name = item.querySelector('.name')?.textContent || '';
-            const price = item.querySelector('.price')?.textContent || '';
-            data.push([name, price]);
-          });
-      
-          data.push([]); // prázdný řádek mezi dny
-        });
-      
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        XLSX.utils.book_append_sheet(wb, ws, "Jídelní lístek");
-        XLSX.writeFile(wb, "jidelni-listek.xlsx");
-      }
-  
+        
       function downloadStyledExcel() {
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = `
-      ${document.querySelector('.header').outerHTML}
-      ${document.querySelector('#menu').outerHTML}
-      ${document.querySelector('.footer').outerHTML}
-    `;
-  
-    const html = `
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            body { font-family: Segoe UI, sans-serif; font-size: 14px; }
-            .day-title { font-weight: bold; font-size: 16px; border-bottom: 1px solid #999; }
-            .item-block { margin: 8px 0; }
-            .category { font-weight: bold; color: #d69e2e; }
-            .item { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; }
-            .name { width: 70%; }
-            .price { font-weight: bold; color: green; }
-            img { height: 60px; }
-            .footer { margin-top: 2rem; font-size: 0.85rem; color: #444; }
-          </style>
-        </head>
-        <body>
-          ${wrapper.innerHTML}
-        </body>
-      </html>
-    `;
-  
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'jidelni-listek.xls';
-    link.click();
-  }
+          const wrapper = document.createElement('div');
+          wrapper.innerHTML = `
+            ${document.querySelector('.header').outerHTML}
+            ${document.querySelector('#menu').outerHTML}
+            ${document.querySelector('.footer').outerHTML}
+          `;
+        
+          const html = `
+            <html>
+              <head>
+                <meta charset="UTF-8">
+                <style>
+                  body { font-family: Segoe UI, sans-serif; font-size: 14px; }
+                  .day-title { font-weight: bold; font-size: 16px; border-bottom: 1px solid #999; }
+                  .item-block { margin: 8px 0; }
+                  .category { font-weight: bold; color: #d69e2e; }
+                  .item { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; }
+                  .name { width: 70%; }
+                  .price { font-weight: bold; color: green; }
+                  img { height: 60px; }
+                  .footer { margin-top: 2rem; font-size: 0.85rem; color: #444; }
+                </style>
+              </head>
+              <body>
+                ${wrapper.innerHTML}
+              </body>
+            </html>
+          `;
+        
+          const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'jidelni-listek.xls';
+          link.click();
+        }
   
     function downloadPNG() {
-      const target = document.getElementById('capture-area');
-      html2canvas(target, {
-        backgroundColor: '#ffffff',
-        scale: 2
-      }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `jidelni-listek-${mode}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-      });
-    }
+        const target = document.getElementById('capture-area');
+        const buttons = document.getElementById('export-buttons');
+        
+        // Dočasně skryj tlačítka
+        buttons.style.display = 'none';
+      
+        html2canvas(target, {
+          backgroundColor: '#ffffff',
+          scale: 2
+        }).then(canvas => {
+          const link = document.createElement('a');
+          link.download = `jidelni-listek-${mode}.png`;
+          link.href = canvas.toDataURL();
+          link.click();
+      
+          // Zobraz tlačítka zpátky
+          buttons.style.display = 'flex';
+        });
+      }
   
     window.onload = () => {
       updateTitle();
