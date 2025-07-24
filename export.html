@@ -32,6 +32,13 @@
       text-align: center;
     }
 
+    #capture-area {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1rem;
+      background: white;
+    }
+
     #logo {
       height: 60px;
       object-fit: contain;
@@ -130,250 +137,251 @@
   </style>
 </head>
 <body>
-  <div class="header">
-    <img id="logo" src="logo5.png" alt="Logo" />
-    <h1>Jídelní lístek</h1>
-  </div>
-
-  <div id="export-buttons">
-    <button onclick="toggleMode()">Přepnout: Denní / Týdenní</button>
-    <button onclick="window.print()">Tisknout jako PDF</button>
-    <button onclick="downloadPNG()">Uložit jako obrázek (PNG)</button>
-    <button onclick="downloadWord()">Exportovat do Wordu</button>
-    <button onclick="downloadExcel()">Exportovat do Excelu</button>
-    <button onclick="downloadCleanPDF()">Exportovat čisté PDF</button>
-    <button onclick="downloadStyledExcel()">Exportovat do Excelu (stylovaný)</button>
-
-
-  </div>
-
-  <div id="menu" class="menu-wrapper"></div>
-
-  <div class="footer">
-    Provozovna: Družstevní 1435, 594 01 Velké Meziříčí<br />
-    Telefon: 566 503 848 | Email: ondrej.rada.bufet@seznam.cz
-  </div>
-
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-  <script>
-  const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
-  const sheetName = 'Týden 1';
-  let mode = 'denni'; // nebo 'tydenni'
-
-  async function loadData() {
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
-    const response = await fetch(url);
-    const text = await response.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
-    const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
-
-    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
-    const menuByDay = {};
-
-    rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
-      const denNormalized = den.trim().toLowerCase();
-      const isStala = denNormalized === 'stálá nabídka';
-
-      // rozhodni, jestli jídlo zobrazit
-      let zobrazit = false;
-      if (aktivni?.toLowerCase().trim() === 'ano') {
-        if (mode === 'denni') {
-          const jeDnes = denNormalized === dnes.toLowerCase();
-          const jePrenesene = prenest?.toLowerCase().trim() === 'ano' && !isStala;
-          const jeStala = isStala;
-          zobrazit = jeDnes || jePrenesene || jeStala;
-        } else {
-          zobrazit = !isStala;
+  <div id="capture-area">
+    <div class="header">
+      <img id="logo" src="logo5.png" alt="Logo" />
+      <h1>Jídelní lístek</h1>
+    </div>
+  
+    <div id="export-buttons">
+      <button onclick="toggleMode()">Přepnout: Denní / Týdenní</button>
+      <button onclick="window.print()">Tisknout jako PDF</button>
+      <button onclick="downloadPNG()">Uložit jako obrázek (PNG)</button>
+      <button onclick="downloadWord()">Exportovat do Wordu</button>
+      <button onclick="downloadExcel()">Exportovat do Excelu</button>
+      <button onclick="downloadCleanPDF()">Exportovat čisté PDF</button>
+      <button onclick="downloadStyledExcel()">Exportovat do Excelu (stylovaný)</button>
+  
+  
+    </div>
+  
+    <div id="menu" class="menu-wrapper"></div>
+  
+    <div class="footer">
+      Provozovna: Družstevní 1435, 594 01 Velké Meziříčí<br />
+      Telefon: 566 503 848 | Email: ondrej.rada.bufet@seznam.cz
+    </div>
+  
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+    <script>
+    const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
+    const sheetName = 'Týden 1';
+    let mode = 'denni'; // nebo 'tydenni'
+  
+    async function loadData() {
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+      const response = await fetch(url);
+      const text = await response.text();
+      const json = JSON.parse(text.substring(47).slice(0, -2));
+      const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
+  
+      const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
+      const menuByDay = {};
+  
+      rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
+        const denNormalized = den.trim().toLowerCase();
+        const isStala = denNormalized === 'stálá nabídka';
+  
+        // rozhodni, jestli jídlo zobrazit
+        let zobrazit = false;
+        if (aktivni?.toLowerCase().trim() === 'ano') {
+          if (mode === 'denni') {
+            const jeDnes = denNormalized === dnes.toLowerCase();
+            const jePrenesene = prenest?.toLowerCase().trim() === 'ano' && !isStala;
+            const jeStala = isStala;
+            zobrazit = jeDnes || jePrenesene || jeStala;
+          } else {
+            zobrazit = !isStala;
+          }
         }
-      }
-
-      if (zobrazit) {
-        if (!menuByDay[denNormalized]) menuByDay[denNormalized] = {};
-        if (!menuByDay[denNormalized][kategorie]) menuByDay[denNormalized][kategorie] = [];
-        menuByDay[denNormalized][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
-      }
-    });
-
-    render(menuByDay);
-  }
-
-  function render(menuByDay) {
-    const container = document.getElementById('menu');
-    container.innerHTML = '';
-
-    const daysOrder = ['pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle', 'stálá nabídka'];
-    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
-
-    daysOrder.forEach(den => {
-      const denData = menuByDay[den];
-      if (!denData) return;
-
-      // v denním režimu zobraz pouze dnešní den nebo "Stálá nabídka"
-      if (mode === 'denni' && den !== dnes && den !== 'stálá nabídka') return;
-
-      const kategorieKeys = Object.keys(denData).filter(k => denData[k] && denData[k].length > 0);
-      if (kategorieKeys.length === 0) return;
-
-      const denBlock = document.createElement('div');
-      const title = document.createElement('div');
-      title.className = 'day-title';
-      title.textContent = den.charAt(0).toUpperCase() + den.slice(1);
-      denBlock.appendChild(title);
-
-      kategorieKeys.forEach(kategorie => {
-        const jidla = denData[kategorie];
-        if (!jidla || jidla.length === 0) return;
-
-        const cat = document.createElement('div');
-        cat.className = 'item-block';
-
-        const catTitle = document.createElement('div');
-        catTitle.className = 'category';
-        catTitle.textContent = kategorie;
-        cat.appendChild(catTitle);
-
-        jidla.forEach(j => {
-          const item = document.createElement('div');
-          item.className = 'item';
-          item.innerHTML = `
-            <div class="name">${j.nazev}${j.gramaz ? ` (${j.gramaz})` : ''}${j.alergeny ? ` - A: ${j.alergeny}` : ''}</div>
-            <div class="price">
-              ${kategorie === 'Polévka' && j.cenaPul ? `${j.cena} Kč / ½ porce za ${j.cenaPul} Kč` : `${j.cena} Kč`}
-            </div>`;
-          cat.appendChild(item);
-        });
-
-        denBlock.appendChild(cat);
+  
+        if (zobrazit) {
+          if (!menuByDay[denNormalized]) menuByDay[denNormalized] = {};
+          if (!menuByDay[denNormalized][kategorie]) menuByDay[denNormalized][kategorie] = [];
+          menuByDay[denNormalized][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
+        }
       });
-
-      container.appendChild(denBlock);
-    });
-  }
-
-  function toggleMode() {
-    mode = mode === 'denni' ? 'tydenni' : 'denni';
-    updateTitle();
-    document.querySelector('#export-buttons button').textContent = `Přepnout: ${mode === 'denni' ? 'Týdenní' : 'Denní'}`;
-    loadData();
-  }
-
-  function updateTitle() {
-    const title = document.querySelector('.header h1');
-    title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
-  }
-  function downloadCleanPDF() {
-      const element = document.body.cloneNode(true);
-    
-      // Skryj tlačítka
-      const buttons = element.querySelector('#export-buttons');
-      if (buttons) buttons.remove();
-    
-      // Připrav konfiguraci
-      const opt = {
-        margin:       [1, 1, 1.5, 1],
-        filename:     `jidelni-listek-${mode}.pdf`, // horní, pravý, spodní, levý (v cm)
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
-      };
-    
-      html2pdf().from(element).set(opt).save();
+  
+      render(menuByDay);
     }
-
-
-  function downloadWord() {
-      const wrapper = document.createElement('div');
-      wrapper.innerHTML = `
-        ${document.querySelector('.header').outerHTML}
-        ${document.querySelector('#menu').outerHTML}
-        ${document.querySelector('.footer').outerHTML}
-      `;
-    
-      const html = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office'
-              xmlns:w='urn:schemas-microsoft-com:office:word'
-              xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head><body>${wrapper.innerHTML}</body></html>`;
-    
-      const blob = new Blob([html], { type: 'application/msword' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `jidelni-listek.doc`;
-      link.click();
-    }
-    
-    function downloadExcel() {
-      const wb = XLSX.utils.book_new();
-      const data = [];
-    
+  
+    function render(menuByDay) {
       const container = document.getElementById('menu');
-      const dayBlocks = container.querySelectorAll('.day-title');
-    
-      dayBlocks.forEach(dayTitle => {
-        const den = dayTitle.textContent.trim();
-        data.push([den]); // název dne jako oddělovač
-    
-        const items = dayTitle.parentElement.querySelectorAll('.item');
-        items.forEach(item => {
-          const name = item.querySelector('.name')?.textContent || '';
-          const price = item.querySelector('.price')?.textContent || '';
-          data.push([name, price]);
+      container.innerHTML = '';
+  
+      const daysOrder = ['pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota', 'neděle', 'stálá nabídka'];
+      const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
+  
+      daysOrder.forEach(den => {
+        const denData = menuByDay[den];
+        if (!denData) return;
+  
+        // v denním režimu zobraz pouze dnešní den nebo "Stálá nabídka"
+        if (mode === 'denni' && den !== dnes && den !== 'stálá nabídka') return;
+  
+        const kategorieKeys = Object.keys(denData).filter(k => denData[k] && denData[k].length > 0);
+        if (kategorieKeys.length === 0) return;
+  
+        const denBlock = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'day-title';
+        title.textContent = den.charAt(0).toUpperCase() + den.slice(1);
+        denBlock.appendChild(title);
+  
+        kategorieKeys.forEach(kategorie => {
+          const jidla = denData[kategorie];
+          if (!jidla || jidla.length === 0) return;
+  
+          const cat = document.createElement('div');
+          cat.className = 'item-block';
+  
+          const catTitle = document.createElement('div');
+          catTitle.className = 'category';
+          catTitle.textContent = kategorie;
+          cat.appendChild(catTitle);
+  
+          jidla.forEach(j => {
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.innerHTML = `
+              <div class="name">${j.nazev}${j.gramaz ? ` (${j.gramaz})` : ''}${j.alergeny ? ` - A: ${j.alergeny}` : ''}</div>
+              <div class="price">
+                ${kategorie === 'Polévka' && j.cenaPul ? `${j.cena} Kč / ½ porce za ${j.cenaPul} Kč` : `${j.cena} Kč`}
+              </div>`;
+            cat.appendChild(item);
+          });
+  
+          denBlock.appendChild(cat);
         });
-    
-        data.push([]); // prázdný řádek mezi dny
+  
+        container.appendChild(denBlock);
       });
-    
-      const ws = XLSX.utils.aoa_to_sheet(data);
-      XLSX.utils.book_append_sheet(wb, ws, "Jídelní lístek");
-      XLSX.writeFile(wb, "jidelni-listek.xlsx");
     }
-
-    function downloadStyledExcel() {
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = `
-    ${document.querySelector('.header').outerHTML}
-    ${document.querySelector('#menu').outerHTML}
-    ${document.querySelector('.footer').outerHTML}
-  `;
-
-  const html = `
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          body { font-family: Segoe UI, sans-serif; font-size: 14px; }
-          .day-title { font-weight: bold; font-size: 16px; border-bottom: 1px solid #999; }
-          .item-block { margin: 8px 0; }
-          .category { font-weight: bold; color: #d69e2e; }
-          .item { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; }
-          .name { width: 70%; }
-          .price { font-weight: bold; color: green; }
-          img { height: 60px; }
-          .footer { margin-top: 2rem; font-size: 0.85rem; color: #444; }
-        </style>
-      </head>
-      <body>
-        ${wrapper.innerHTML}
-      </body>
-    </html>
-  `;
-
-  const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'jidelni-listek.xls';
-  link.click();
-}
-
-  function downloadPNG() {
-      const target = document.body; // nebo wrapper s menu, header, footer
-        html2canvas(target, {
-          backgroundColor: '#ffffff',
-          scale: 2// lepší kvalita
+  
+    function toggleMode() {
+      mode = mode === 'denni' ? 'tydenni' : 'denni';
+      updateTitle();
+      document.querySelector('#export-buttons button').textContent = `Přepnout: ${mode === 'denni' ? 'Týdenní' : 'Denní'}`;
+      loadData();
+    }
+  
+    function updateTitle() {
+      const title = document.querySelector('.header h1');
+      title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
+    }
+    function downloadCleanPDF() {
+        const element = document.body.cloneNode(true);
+      
+        // Skryj tlačítka
+        const buttons = element.querySelector('#export-buttons');
+        if (buttons) buttons.remove();
+      
+        // Připrav konfiguraci
+        const opt = {
+          margin:       [1, 1, 1.5, 1],
+          filename:     `jidelni-listek-${mode}.pdf`, // horní, pravý, spodní, levý (v cm)
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2 },
+          jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
+        };
+      
+        html2pdf().from(element).set(opt).save();
+      }
+  
+  
+    function downloadWord() {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+          ${document.querySelector('.header').outerHTML}
+          ${document.querySelector('#menu').outerHTML}
+          ${document.querySelector('.footer').outerHTML}
+        `;
+      
+        const html = `
+          <html xmlns:o='urn:schemas-microsoft-com:office:office'
+                xmlns:w='urn:schemas-microsoft-com:office:word'
+                xmlns='http://www.w3.org/TR/REC-html40'>
+          <head><meta charset='utf-8'></head><body>${wrapper.innerHTML}</body></html>`;
+      
+        const blob = new Blob([html], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `jidelni-listek.doc`;
+        link.click();
+      }
+      
+      function downloadExcel() {
+        const wb = XLSX.utils.book_new();
+        const data = [];
+      
+        const container = document.getElementById('menu');
+        const dayBlocks = container.querySelectorAll('.day-title');
+      
+        dayBlocks.forEach(dayTitle => {
+          const den = dayTitle.textContent.trim();
+          data.push([den]); // název dne jako oddělovač
+      
+          const items = dayTitle.parentElement.querySelectorAll('.item');
+          items.forEach(item => {
+            const name = item.querySelector('.name')?.textContent || '';
+            const price = item.querySelector('.price')?.textContent || '';
+            data.push([name, price]);
+          });
+      
+          data.push([]); // prázdný řádek mezi dny
+        });
+      
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, "Jídelní lístek");
+        XLSX.writeFile(wb, "jidelni-listek.xlsx");
+      }
+  
+      function downloadStyledExcel() {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+      ${document.querySelector('.header').outerHTML}
+      ${document.querySelector('#menu').outerHTML}
+      ${document.querySelector('.footer').outerHTML}
+    `;
+  
+    const html = `
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: Segoe UI, sans-serif; font-size: 14px; }
+            .day-title { font-weight: bold; font-size: 16px; border-bottom: 1px solid #999; }
+            .item-block { margin: 8px 0; }
+            .category { font-weight: bold; color: #d69e2e; }
+            .item { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; }
+            .name { width: 70%; }
+            .price { font-weight: bold; color: green; }
+            img { height: 60px; }
+            .footer { margin-top: 2rem; font-size: 0.85rem; color: #444; }
+          </style>
+        </head>
+        <body>
+          ${wrapper.innerHTML}
+        </body>
+      </html>
+    `;
+  
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'jidelni-listek.xls';
+    link.click();
+  }
+  
+    function downloadPNG() {
+      const target = document.getElementById('capture-area');
+      html2canvas(target, {
+        backgroundColor: '#ffffff',
+        scale: 2
       }).then(canvas => {
         const link = document.createElement('a');
         link.download = `jidelni-listek-${mode}.png`;
@@ -381,14 +389,13 @@
         link.click();
       });
     }
-
-
-  window.onload = () => {
-    updateTitle();
-    loadData();
-  };
-</script>
-
+  
+    window.onload = () => {
+      updateTitle();
+      loadData();
+    };
+  </script>
+  </div>
 </body>
 </html>
 
