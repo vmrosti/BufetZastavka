@@ -140,7 +140,7 @@
     <button onclick="downloadPNG()">Uložit jako obrázek (PNG)</button>
     <button onclick="downloadWord()">Exportovat do Wordu</button>
     <button onclick="downloadExcel()">Exportovat do Excelu</button>
-
+    <button onclick="downloadCleanPDF()">Exportovat čisté PDF</button>
 
   </div>
 
@@ -153,6 +153,8 @@
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <script>
   const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
   const sheetName = 'Týden 1';
@@ -259,6 +261,25 @@
     const title = document.querySelector('.header h1');
     title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
   }
+  function downloadCleanPDF() {
+      const element = document.body.cloneNode(true);
+    
+      // Skryj tlačítka
+      const buttons = element.querySelector('#export-buttons');
+      if (buttons) buttons.remove();
+    
+      // Připrav konfiguraci
+      const opt = {
+        margin:       0.5,
+        filename:     `jidelni-listek-${mode}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
+      };
+    
+      html2pdf().from(element).set(opt).save();
+    }
+
 
   function downloadWord() {
       const header = `
