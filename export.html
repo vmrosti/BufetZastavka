@@ -89,12 +89,13 @@
     }
 
     .footer {
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       border-top: 1px solid #cbd5e0;
       padding-top: 0.5rem;
       font-size: 0.85rem;
       text-align: center;
       color: #4a5568;
+      page-break-inside: avoid;
     }
 
     #export-buttons {
@@ -141,6 +142,8 @@
     <button onclick="downloadWord()">Exportovat do Wordu</button>
     <button onclick="downloadExcel()">Exportovat do Excelu</button>
     <button onclick="downloadCleanPDF()">Exportovat čisté PDF</button>
+    <button onclick="downloadStyledExcel()">Exportovat do Excelu (stylovaný)</button>
+
 
   </div>
 
@@ -270,8 +273,8 @@
     
       // Připrav konfiguraci
       const opt = {
-        margin:       0.5,
-        filename:     `jidelni-listek-${mode}.pdf`,
+        margin:       [1, 1, 1.5, 1],
+        filename:     `jidelni-listek-${mode}.pdf`, // horní, pravý, spodní, levý (v cm)
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2 },
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
@@ -282,16 +285,20 @@
 
 
   function downloadWord() {
-      const header = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'></head><body>`;
-      const footer = `</body></html>`;
-      const content = document.getElementById('menu').innerHTML;
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = `
+        ${document.querySelector('.header').outerHTML}
+        ${document.querySelector('#menu').outerHTML}
+        ${document.querySelector('.footer').outerHTML}
+      `;
     
-      const blob = new Blob([header + content + footer], {
-        type: 'application/msword'
-      });
+      const html = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office'
+              xmlns:w='urn:schemas-microsoft-com:office:word'
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head><body>${wrapper.innerHTML}</body></html>`;
     
+      const blob = new Blob([html], { type: 'application/msword' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `jidelni-listek.doc`;
@@ -323,12 +330,50 @@
       XLSX.utils.book_append_sheet(wb, ws, "Jídelní lístek");
       XLSX.writeFile(wb, "jidelni-listek.xlsx");
     }
-    
+
+    function downloadStyledExcel() {
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    ${document.querySelector('.header').outerHTML}
+    ${document.querySelector('#menu').outerHTML}
+    ${document.querySelector('.footer').outerHTML}
+  `;
+
+  const html = `
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Segoe UI, sans-serif; font-size: 14px; }
+          .day-title { font-weight: bold; font-size: 16px; border-bottom: 1px solid #999; }
+          .item-block { margin: 8px 0; }
+          .category { font-weight: bold; color: #d69e2e; }
+          .item { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; }
+          .name { width: 70%; }
+          .price { font-weight: bold; color: green; }
+          img { height: 60px; }
+          .footer { margin-top: 2rem; font-size: 0.85rem; color: #444; }
+        </style>
+      </head>
+      <body>
+        ${wrapper.innerHTML}
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'jidelni-listek.xls';
+  link.click();
+}
+
   function downloadPNG() {
-      const menuElement = document.getElementById('menu');
-      html2canvas(menuElement, {
-        backgroundColor: '#ffffff',
-        scale: 2 // lepší kvalita
+      const target = document.body; // nebo wrapper s menu, header, footer
+        html2canvas(target, {
+          backgroundColor: '#ffffff',
+          scale: 2// lepší kvalita
       }).then(canvas => {
         const link = document.createElement('a');
         link.download = `jidelni-listek-${mode}.png`;
