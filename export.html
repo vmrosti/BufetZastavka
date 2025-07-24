@@ -50,6 +50,8 @@
       margin: 0 auto;
       padding: 1rem;
       background: white;
+      min-height: 270mm;
+      position: relative;
     }
 
     #logo {
@@ -110,13 +112,14 @@
     }
 
     .footer {
-      margin-top: 1.5rem;
+      position: absolute;
+      bottom: 1rem;
+      width: calc(100% - 2rem); /* kvůli paddingu */
+      text-align: center;
+      font-size: 0.85rem;
+      color: #4a5568;
       border-top: 1px solid #cbd5e0;
       padding-top: 0.5rem;
-      font-size: 0.85rem;
-      text-align: center;
-      color: #4a5568;
-      page-break-inside: avoid;
     }
 
     #export-buttons {
@@ -293,52 +296,66 @@
         .forEach(el => el.style.display = '');
     }
 
-  function downloadCleanPDF() {
-      hideElementsForExport();
-    
-      const element = document.getElementById('capture-area').cloneNode(true);
-    
-      // Vytvoř obal pro A4 s vystředěním a paddingem
-      const wrapper = document.createElement('div');
-      wrapper.style.width = '210mm';
-      wrapper.style.minHeight = '297mm';
-      wrapper.style.margin = '0 auto';
-      wrapper.style.padding = '10mm';
-      wrapper.style.boxSizing = 'border-box';
-      wrapper.style.background = 'white';
-    
-      wrapper.appendChild(element);
-    
-      const opt = {
-        margin: 0,
-        filename: `jidelni-listek-${mode}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          scrollX: 0,
-          scrollY: 0
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait'
-        },
-        pagebreak: { mode: ['avoid-all', 'css'] }
-      };
-    
-      html2pdf()
-        .set(opt)
-        .from(wrapper)
-        .save()
-        .then(() => {
-          showElementsAfterExport();
-        })
-        .catch(err => {
-          console.error('Chyba při exportu PDF:', err);
-          showElementsAfterExport();
-        });
-    }
+function downloadCleanPDF() {
+  hideElementsForExport();
+
+  const source = document.getElementById('capture-area');
+  const clone = source.cloneNode(true);
+
+  // Připravíme wrapper o velikosti A4
+  const wrapper = document.createElement('div');
+  wrapper.style.width = '210mm';
+  wrapper.style.minHeight = '297mm';
+  wrapper.style.margin = '0 auto';
+  wrapper.style.padding = '10mm';
+  wrapper.style.boxSizing = 'border-box';
+  wrapper.style.background = 'white';
+  wrapper.style.position = 'relative'; // pro footer
+
+  // Posuneme footer dolů
+  const footer = clone.querySelector('.footer');
+  if (footer) {
+    footer.style.position = 'absolute';
+    footer.style.bottom = '10mm';
+    footer.style.left = '10mm';
+    footer.style.right = '10mm';
+    footer.style.width = 'calc(100% - 20mm)';
+  }
+
+  wrapper.appendChild(clone);
+
+  const opt = {
+    margin: 0,
+    filename: `jidelni-listek-${mode}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: wrapper.scrollWidth
+    },
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait'
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  html2pdf()
+    .set(opt)
+    .from(wrapper)
+    .save()
+    .then(() => {
+      showElementsAfterExport(); // vrátí tlačítka
+    })
+    .catch(err => {
+      console.error('Chyba při exportu PDF:', err);
+      showElementsAfterExport();
+    });
+}
+
   
     function downloadWord() {
       hideElementsForExport();
