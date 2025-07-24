@@ -160,10 +160,13 @@
       <button onclick="downloadPNG()">Uložit jako obrázek (PNG)</button>
       <button onclick="downloadWord()">Exportovat do Wordu</button>
       <button onclick="downloadCleanPDF()">Exportovat čisté PDF</button>
-      <button onclick="downloadStyledExcel()">Exportovat do Excelu (stylovaný)</button> 
-      <button onclick="aktualizovat()">Aktualizovat z GitHubu</button>
-      <div id="vysledek"></div>
+      <button onclick="downloadStyledExcel()">Exportovat do Excelu (stylovaný)</button>            
     </div>
+  <div id="export-buttons">
+    <button onclick="aktualizovat()">Aktualizovat z GitHubu</button>
+    <div id="vysledek"></div>
+    <button onclick="prepniZdroj()">Načítat z: <span id="zdrojTxt">...</span></button>
+  </div>
   <div id="capture-area">
     <div class="header">
       <img id="logo" src="logo5.png" alt="Logo" />
@@ -190,16 +193,19 @@
 
       async function loadConfig() {
         try {
-          const response = await fetch('config.json?_=' + new Date().getTime()); // zamezí cache
+          const response = await fetch('config.json?_=' + new Date().getTime()); // necacheuje
           const config = await response.json();
           dataSource = config.source || 'google';
+      
+          // AKTUALIZUJ TEXT NA TLAČÍTKU
+          const zdrojTxt = document.getElementById('zdrojTxt');
+          if (zdrojTxt) zdrojTxt.textContent = dataSource;
         } catch (err) {
-          console.warn('Nepodařilo se načíst config.json, přepínám na Google Sheets.');
+          console.warn('Nepodařilo se načíst config.json, používám google');
           dataSource = 'google';
         }
       }
-
-      
+     
     async function loadData() {
       const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
       const response = await fetch(url);
@@ -236,7 +242,17 @@
   
       render(menuByDay);
     }
-  
+
+    function prepniZdroj() {
+        const nova = dataSource === 'google' ? 'excel' : 'google';
+        fetch('update-config.php?source=' + nova)
+          .then(r => r.text())
+          .then(() => {
+            location.reload(); // načte novou konfiguraci
+          });
+      }
+
+      
     function render(menuByDay) {
       const container = document.getElementById('menu');
       container.innerHTML = '';
