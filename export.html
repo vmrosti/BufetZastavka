@@ -134,6 +134,10 @@
     <button onclick="toggleMode()">Přepnout: Denní / Týdenní</button>
     <button onclick="window.print()">Tisknout jako PDF</button>
     <button onclick="downloadPNG()">Uložit jako obrázek (PNG)</button>
+    <button onclick="downloadWord()">Exportovat do Wordu</button>
+    <button onclick="downloadExcel()">Exportovat do Excelu</button>
+
+
   </div>
 
   <div id="menu" class="menu-wrapper"></div>
@@ -144,6 +148,7 @@
   </div>
 
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
   const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
   const sheetName = 'Týden 1';
@@ -250,6 +255,51 @@
     const title = document.querySelector('.header h1');
     title.textContent = `Jídelní lístek – ${mode === 'denni' ? 'Denní nabídka' : 'Týdenní nabídka'}`;
   }
+
+  function downloadWord() {
+      const header = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'></head><body>`;
+      const footer = `</body></html>`;
+      const content = document.getElementById('menu').innerHTML;
+    
+      const blob = new Blob([header + content + footer], {
+        type: 'application/msword'
+      });
+    
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `jidelni-listek.doc`;
+      link.click();
+    }
+    
+    function downloadExcel() {
+      const wb = XLSX.utils.book_new();
+      const data = [];
+    
+      const container = document.getElementById('menu');
+      const dayBlocks = container.querySelectorAll('.day-title');
+    
+      dayBlocks.forEach(dayTitle => {
+        const den = dayTitle.textContent.trim();
+        data.push([den]); // název dne jako oddělovač
+    
+        const items = dayTitle.parentElement.querySelectorAll('.item');
+        items.forEach(item => {
+          const name = item.querySelector('.name')?.textContent || '';
+          const price = item.querySelector('.price')?.textContent || '';
+          data.push([name, price]);
+        });
+    
+        data.push([]); // prázdný řádek mezi dny
+      });
+    
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, "Jídelní lístek");
+      XLSX.writeFile(wb, "jidelni-listek.xlsx");
+    }
+
+
 
   function downloadPNG() {
     html2canvas(document.body).then(canvas => {
