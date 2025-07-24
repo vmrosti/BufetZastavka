@@ -299,39 +299,10 @@
 function downloadCleanPDF() {
   hideElementsForExport();
 
-  const source = document.getElementById('capture-area');
-  const clone = source.cloneNode(true);
-
-  // Vytvoříme kontejner A4 velikosti a použijeme flexbox
-  const wrapper = document.createElement('div');
-  wrapper.style.width = '210mm';
-  wrapper.style.height = '297mm';
-  wrapper.style.background = 'white';
-  wrapper.style.display = 'flex';
-  wrapper.style.flexDirection = 'column';
-  wrapper.style.justifyContent = 'flex-start';
-  wrapper.style.boxSizing = 'border-box';
-  wrapper.style.padding = '15mm';
-  wrapper.style.overflow = 'hidden';
-
-  // Uprav vnitřní blok, aby zabíral zbytek prostoru kromě footeru
-  const content = document.createElement('div');
-  content.style.flex = '1 1 auto';
-  content.appendChild(clone.querySelector('.header'));
-  content.appendChild(clone.querySelector('#menu'));
-
-  const footer = clone.querySelector('.footer');
-  if (footer) {
-    footer.style.flex = '0 0 auto';
-    footer.style.textAlign = 'center';
-    footer.style.marginTop = '1rem';
-  }
-
-  wrapper.appendChild(content);
-  if (footer) wrapper.appendChild(footer);
+  const element = document.getElementById('capture-area');
 
   const opt = {
-    margin: 0,
+    margin: [10, 10, 15, 10], // horní, pravý, dolní, levý okraj v mm
     filename: `jidelni-listek-${mode}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
@@ -339,19 +310,21 @@ function downloadCleanPDF() {
       useCORS: true,
       scrollX: 0,
       scrollY: 0,
-      windowWidth: wrapper.scrollWidth
+      windowWidth: document.body.scrollWidth // zajistí správný záběr šířky
     },
     jsPDF: {
       unit: 'mm',
       format: 'a4',
       orientation: 'portrait'
     },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    pagebreak: {
+      mode: ['avoid-all', 'css', 'legacy']
+    }
   };
 
   html2pdf()
     .set(opt)
-    .from(wrapper)
+    .from(element)
     .save()
     .then(() => {
       showElementsAfterExport();
@@ -361,7 +334,7 @@ function downloadCleanPDF() {
       showElementsAfterExport();
     });
 }
-  
+
     function downloadWord() {
       hideElementsForExport();
         const wrapper = document.createElement('div');
