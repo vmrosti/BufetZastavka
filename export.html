@@ -231,7 +231,8 @@
      
    async function loadData() {
         let rows = [];
-      
+      document.getElementById('menu').innerHTML = '<div style="color:#888;">⏳ Načítám data...</div>';
+
         if (dataSource === 'google') {
           try {
             const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
@@ -269,6 +270,13 @@
       
             const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
             rows = json;
+            // Validace struktury
+            if (!Array.isArray(rows) || !Array.isArray(rows[0]) || rows[0].length < 8) {
+              alert("❌ Excel neobsahuje očekávanou strukturu. Zkontrolujte sloupce a formát.");
+              document.getElementById("menu").innerHTML = `<div style="color:red;">❌ Neplatná struktura Excelu – očekává se minimálně 8 sloupců (den, kategorie, název, gramáž, cena, ½ porce, alergeny, aktivní).</div>`;
+              return;
+            }
+
           } catch (error) {
             alert(`Chyba při načítání Excelu: ${error.message}`);
             document.getElementById("menu").innerHTML = `<div style="color:red;">❌ ${error.message}</div>`;
