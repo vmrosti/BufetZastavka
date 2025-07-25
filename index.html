@@ -58,6 +58,18 @@
       font-weight: bold;
       color: #2f855a;
     }
+
+    #data-indicator {
+      position: fixed;
+      bottom: 2px;
+      right: 2px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: transparent;
+      z-index: 9999;
+      pointer-events: none; /* nelze kliknout */
+    }
     @media screen and (max-width: 1000px) {
       .menu-wrapper {
         column-count: 2;
@@ -78,90 +90,126 @@
   </header>
 
   <div id="menu" class="menu-wrapper"></div>
-  
+  <div id="data-indicator"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
  <script>
-    async function loadMenu() {
-      const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
-      const sheetName = 'Týden 1';
-      const url = https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName};
+  let dataSource = 'google';
 
+    async function loadConfig() {
       try {
-        const response = await fetch(url);
-        const text = await response.text();
-        const json = JSON.parse(text.substring(47).slice(0, -2));
-        const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
-
-        const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
-        const menu = rows.filter(r => {
-          const den = r[0]?.toLowerCase();
-          const aktivni = r[7]?.toLowerCase();
-          const prenest = r[8]?.toLowerCase();
-        
-          const jeDnes = den === dnes.toLowerCase() && aktivni === 'ano';
-          const jePřenesené = prenest === 'ano' && den !== 'stálá nabídka';
-          const jeStálaNabídka = den === 'stálá nabídka' && aktivni === 'ano';
-        
-          return jeDnes || jePřenesené || jeStálaNabídka;
-        });
-
-        const sekce = {
-          'Polévka': [],
-          'Jídla na objednávku': [],
-          'Saláty': [],
-          'Hlavní jídlo': [],
-          'Bezmasá jídla na objednávku': [],          
-          'Moučníky': []
-        };
-
-        menu.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
-          if (sekce[kategorie]) {
-            sekce[kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny, prenest });
-          }
-        });
-
-        const container = document.getElementById('menu');
-        container.innerHTML = '';
-
-        for (const [kategorie, jidla] of Object.entries(sekce)) {
-          if (!jidla.length) continue;
-
-          const section = document.createElement('div');
-          section.className = 'section';
-          const header = document.createElement('h2');
-          header.textContent = kategorie;
-          section.appendChild(header);
-
-          const dnesni = jidla.filter(j => !j.prenest || j.prenest.toLowerCase() !== 'ano');
-          const prenesena = jidla.filter(j => j.prenest && j.prenest.toLowerCase() === 'ano');
-          const renderItems = [...dnesni, ...prenesena];
-
-          renderItems.forEach(jidlo => {
-            const item = document.createElement('div');
-            item.className = 'item';
-            item.innerHTML = 
-              <div class="name">${jidlo.nazev}</div>
-              <div class="info">${jidlo.gramaz} | Alergeny: ${jidlo.alergeny}</div>
-              <div class="price">
-                ${kategorie === 'Polévka' && jidlo.cenaPul 
-                  ? ${jidlo.cena} Kč / ½ porce za ${jidlo.cenaPul} Kč 
-                  : ${jidlo.cena} Kč}
-              </div>
-            ;
-            section.appendChild(item);
-          });
-
-          container.appendChild(section);
-        }
-
-        if (!container.innerHTML) {
-          container.innerHTML = '<p class="text-center text-red-600 text-xl">Pro dnešní den nejsou dostupná žádná jídla.</p>';
-        }
+        const response = await fetch('config.json?_=' + new Date().getTime());
+        const config = await response.json();
+        dataSource = config.source || 'google';
       } catch (err) {
-        document.getElementById('menu').innerHTML = '<p class="text-center text-red-600 text-xl">Nepodařilo se načíst jídelní lístek.</p>';
-        console.error('Chyba:', err);
+        console.warn('Nepodařilo se načíst config.json, používám "google".');
+        dataSource = 'google';
       }
     }
+   
+   async function loadMenu() {
+  await loadConfig(); // Načte hodnotu dataSource
+
+  const sheetId = '1D-QOHmp0SQ3QpQizBHysu0wxs_tmnDzDyZVjK-T4b_k';
+  const sheetName = 'Týden 1';
+  let rows = [];
+
+  try {
+    if (dataSource === 'google') {
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+      const response = await fetch(url);
+      const text = await response.text();
+      const json = JSON.parse(text.substring(47).slice(0, -2));
+      rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
+    } else if (dataSource === 'excel') {
+      const response = await fetch(`${sheetName}.xlsx`);
+      if (!response.ok) throw new Error('Soubor Excel nenalezen.');
+      const arrayBuffer = await response.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheet = workbook.Sheets[sheetName];
+      if (!sheet) throw new Error('List s názvem "' + sheetName + '" nebyl nalezen.');
+      rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    }
+
+    const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' });
+    const menu = rows.filter(r => {
+      const den = r[0]?.toLowerCase();
+      const aktivni = r[7]?.toLowerCase();
+      const prenest = r[8]?.toLowerCase();
+
+      const jeDnes = den === dnes.toLowerCase() && aktivni === 'ano';
+      const jePřenesené = prenest === 'ano' && den !== 'stálá nabídka';
+      const jeStálaNabídka = den === 'stálá nabídka' && aktivni === 'ano';
+
+      return jeDnes || jePřenesené || jeStálaNabídka;
+    });
+
+    const sekce = {
+      'Polévka': [],
+      'Jídla na objednávku': [],
+      'Saláty': [],
+      'Hlavní jídlo': [],
+      'Bezmasá jídla na objednávku': [],
+      'Moučníky': []
+    };
+
+    menu.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
+      if (sekce[kategorie]) {
+        sekce[kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny, prenest });
+      }
+    });
+
+    const container = document.getElementById('menu');
+    container.innerHTML = '';
+
+    for (const [kategorie, jidla] of Object.entries(sekce)) {
+      if (!jidla.length) continue;
+
+      const section = document.createElement('div');
+      section.className = 'section';
+      const header = document.createElement('h2');
+      header.textContent = kategorie;
+      section.appendChild(header);
+
+      const dnesni = jidla.filter(j => !j.prenest || j.prenest.toLowerCase() !== 'ano');
+      const prenesena = jidla.filter(j => j.prenest && j.prenest.toLowerCase() === 'ano');
+      const renderItems = [...dnesni, ...prenesena];
+
+      renderItems.forEach(jidlo => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.innerHTML = `
+          <div class="name">${jidlo.nazev}</div>
+          <div class="info">${jidlo.gramaz || ''} ${jidlo.alergeny ? '| Alergeny: ' + jidlo.alergeny : ''}</div>
+          <div class="price">
+            ${kategorie === 'Polévka' && jidlo.cenaPul 
+              ? `${jidlo.cena} Kč / ½ porce za ${jidlo.cenaPul} Kč` 
+              : `${jidlo.cena} Kč`}
+          </div>
+        `;
+        section.appendChild(item);
+      });
+
+      container.appendChild(section);
+    }
+
+    if (!container.innerHTML) {
+      container.innerHTML = '<p class="text-center text-red-600 text-xl">Pro dnešní den nejsou dostupná žádná jídla.</p>';
+    }
+
+    // Volitelně: aktualizuj info o zdroji
+    const indicator = document.getElementById('source-indicator');
+    if (indicator) indicator.textContent = `Zdroj: ${dataSource}`;
+  } const indikace = document.getElementById('data-indicator');
+      if (indikace) {
+        indikace.style.backgroundColor = dataSource === 'excel' ? '#1D6F42' : '#4285F4'; 
+        // např. žlutá pro Excel, tyrkysová pro Google
+      }
+  catch (err) {
+    document.getElementById('menu').innerHTML = '<p class="text-center text-red-600 text-xl">Nepodařilo se načíst jídelní lístek.</p>';
+    console.error('Chyba:', err);
+  }
+    
+}
 
     function updateDateTime() {
       const now = new Date();
@@ -170,7 +218,7 @@
       const cas = now.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
       const datetime = document.getElementById('datetime');
       if (datetime) {
-        datetime.textContent = ${den}, ${datum} ${cas};
+       datetime.textContent = `${den}, ${datum} ${cas}`;
       }
     }
 
