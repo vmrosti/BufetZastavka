@@ -206,25 +206,35 @@
         }
       }
      
-    async function loadData() {
-      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
-      const response = await fetch(url);
-      const text = await response.text();
-      const json = JSON.parse(text.substring(47).slice(0, -2));
-      const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
-  
+   async function loadData() {
+      let rows = [];
+    
+      if (dataSource === 'google') {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+        const response = await fetch(url);
+        const text = await response.text();
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+        rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
+      } else if (dataSource === 'excel') {
+        const response = await fetch('data.xlsx');
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        rows = json;
+      }
+    
       const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
       const menuByDay = {};
-  
+    
       rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
-        const denNormalized = den.trim().toLowerCase();
+        const denNormalized = den?.trim().toLowerCase();
         const isStala = denNormalized === 'stálá nabídka';
-  
-        // rozhodni, jestli jídlo zobrazit
+    
         let zobrazit = false;
         if (aktivni?.toLowerCase().trim() === 'ano') {
           if (mode === 'denni') {
-            const jeDnes = denNormalized === dnes.toLowerCase();
+            const jeDnes = denNormalized === dnes;
             const jePrenesene = prenest?.toLowerCase().trim() === 'ano' && !isStala;
             const jeStala = isStala;
             zobrazit = jeDnes || jePrenesene || jeStala;
@@ -232,19 +242,21 @@
             zobrazit = !isStala;
           }
         }
-  
+    
         if (zobrazit) {
           if (!menuByDay[denNormalized]) menuByDay[denNormalized] = {};
           if (!menuByDay[denNormalized][kategorie]) menuByDay[denNormalized][kategorie] = [];
           menuByDay[denNormalized][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
         }
       });
-  
+    
       render(menuByDay);
     }
 
+
     function prepniZdroj() {
         const nova = dataSource === 'google' ? 'excel' : 'google';
+         console.log('Přepínám zdroj na:', nova);
         fetch('update-config.php?source=' + nova)
           .then(r => r.text())
           .then(() => {
@@ -477,6 +489,7 @@ function downloadCleanPDF() {
   
     window.onload = () => {
       updateTitle();
+      await loadConfig();
       loadData();
     };
   </script>
