@@ -212,22 +212,30 @@
       }
 
    function prepniZdroj() {
-  const nova = dataSource === 'google' ? 'excel' : 'google';
-  console.log('Přepínám zdroj na:', nova);
-
-  fetch('update-config.php?source=' + nova)
-    .then(r => r.text())
-    .then(() => {
-      dataSource = nova;
-      document.getElementById('zdrojTxt').textContent = dataSource;
-      loadData(); // přenačti data
-    })
-    .catch(err => {
-      alert("Nepodařilo se přepnout zdroj dat: " + err);
-    });
-}
-
-
+      const nova = dataSource === 'google' ? 'excel' : 'google';
+      console.log('Přepínám zdroj na:', nova);
+    
+      fetch('update-config.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ source: nova })
+      })
+      .then(r => r.text())
+      .then((res) => {
+        if (res.trim() === 'OK') {
+          dataSource = nova;
+          document.getElementById('zdrojTxt').textContent = dataSource;
+          loadData(); // přenačti data
+        } else {
+          throw new Error(res);
+        }
+      })
+      .catch(err => {
+        alert("Nepodařilo se přepnout zdroj dat: " + err);
+      });
+    }
      
    async function loadData() {
         let rows = [];
