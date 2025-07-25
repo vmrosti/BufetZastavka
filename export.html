@@ -216,13 +216,26 @@
         const json = JSON.parse(text.substring(47).slice(0, -2));
         rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
       } else if (dataSource === 'excel') {
-        const response = await fetch('data.xlsx');
+        const encodedName = encodeURIComponent(`${sheetName}.xlsx`);
+        const response = await fetch(encodedName);
+
+        if (!response.ok) {
+          throw new Error(`Soubor ${encodedName} nebyl nalezen (status ${response.status})`);
+        }
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         const sheet = workbook.Sheets[sheetName];
+
+         if (!sheet) {
+          throw new Error(`List s názvem "${sheetName}" nebyl v Excelu nalezen.`);
+        }
         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         rows = json;
-      }
+      } catch (error) {
+          alert(`Chyba při načítání Excelu: ${error.message}`);
+          document.getElementById("menu").innerHTML = `<div style="color:red;">❌ ${error.message}</div>`;
+          return; // ukonči funkci, aby se dál nic nevykreslovalo
+        }
     
       const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
       const menuByDay = {};
