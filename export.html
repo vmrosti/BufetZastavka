@@ -52,6 +52,7 @@
       background: white;
       min-height: 270mm;
       position: relative;
+      page-break-inside: avoid;
     }
 
     #logo {
@@ -122,14 +123,16 @@
       padding-top: 0.5rem;
     }
 
-    #export-buttons {
+    #export-buttons, 
+    #export-source-switch  {
       display: flex;
       justify-content: center;
       gap: 1rem;
       margin-bottom: .5rem;
     }
 
-    #export-buttons button {
+    #export-buttons button,
+    #export-source-switch button {
       padding: 0.5rem 1rem;
       background-color: #2f855a;
       color: white;
@@ -138,12 +141,14 @@
       cursor: pointer;
     }
 
-    #export-buttons button:hover {
+    #export-buttons button:hover,
+    #export-source-switch button:hover {
       background-color: #276749;
     }
 
     @media print {
-      #export-buttons {
+      #export-buttons,
+      #export-source-switch {
         display: none;
       }
       html, body {
@@ -207,68 +212,81 @@
       }
      
    async function loadData() {
-      let rows = [];
-    
-      if (dataSource === 'google') {
-        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
-        const response = await fetch(url);
-        const text = await response.text();
-        const json = JSON.parse(text.substring(47).slice(0, -2));
-        rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
-      }else if (dataSource === 'excel') {
-  try {
-    const encodedName = encodeURIComponent(`${sheetName}.xlsx`);
-    const response = await fetch(encodedName);
-
-    if (!response.ok) {
-      throw new Error(`Soubor ${encodedName} nebyl nalezen (status ${response.status})`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const sheet = workbook.Sheets[sheetName];
-
-    if (!sheet) {
-      throw new Error(`List s názvem "${sheetName}" nebyl v Excelu nalezen.`);
-    }
-
-    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    rows = json;
-
-  } catch (error) {
-    alert(`Chyba při načítání Excelu: ${error.message}`);
-    document.getElementById("menu").innerHTML = `<div style="color:red;">❌ ${error.message}</div>`;
-    return; // zastaví načítání zbytku
-  }
-    
-      const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
-      const menuByDay = {};
-    
-      rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
-        const denNormalized = den?.trim().toLowerCase();
-        const isStala = denNormalized === 'stálá nabídka';
-    
-        let zobrazit = false;
-        if (aktivni?.toLowerCase().trim() === 'ano') {
-          if (mode === 'denni') {
-            const jeDnes = denNormalized === dnes;
-            const jePrenesene = prenest?.toLowerCase().trim() === 'ano' && !isStala;
-            const jeStala = isStala;
-            zobrazit = jeDnes || jePrenesene || jeStala;
-          } else {
-            zobrazit = !isStala;
+        let rows = [];
+      
+        if (dataSource === 'google') {
+          try {
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+            const response = await fetch(url);
+      
+            if (!response.ok) {
+              throw new Error(`Chyba při načítání Google Sheets: ${response.statusText}`);
+            }
+      
+            const text = await response.text();
+            const json = JSON.parse(text.substring(47).slice(0, -2));
+            rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ''));
+          } catch (error) {
+            alert(`Chyba při načítání dat z Google Sheets: ${error.message}`);
+            document.getElementById("menu").innerHTML = `<div style="color:red;">❌ ${error.message}</div>`;
+            return;
+          }
+      
+        } else if (dataSource === 'excel') {
+          try {
+            const encodedName = encodeURIComponent(`${sheetName}.xlsx`);
+            const response = await fetch(encodedName);
+      
+            if (!response.ok) {
+              throw new Error(`Soubor ${encodedName} nebyl nalezen (status ${response.status})`);
+            }
+      
+            const arrayBuffer = await response.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheet = workbook.Sheets[sheetName];
+      
+            if (!sheet) {
+              throw new Error(`List s názvem "${sheetName}" nebyl v Excelu nalezen.`);
+            }
+      
+            const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            rows = json;
+          } catch (error) {
+            alert(`Chyba při načítání Excelu: ${error.message}`);
+            document.getElementById("menu").innerHTML = `<div style="color:red;">❌ ${error.message}</div>`;
+            return;
           }
         }
-    
-        if (zobrazit) {
-          if (!menuByDay[denNormalized]) menuByDay[denNormalized] = {};
-          if (!menuByDay[denNormalized][kategorie]) menuByDay[denNormalized][kategorie] = [];
-          menuByDay[denNormalized][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
-        }
-      });
-    
-      render(menuByDay);
-    }
+      
+        // Společné zpracování pro oba zdroje
+        const dnes = new Date().toLocaleDateString('cs-CZ', { weekday: 'long' }).toLowerCase();
+        const menuByDay = {};
+      
+        rows.forEach(([den, kategorie, nazev, gramaz, cena, cenaPul, alergeny, aktivni, prenest]) => {
+          const denNormalized = den?.trim().toLowerCase();
+          const isStala = denNormalized === 'stálá nabídka';
+      
+          let zobrazit = false;
+          if (aktivni?.toLowerCase().trim() === 'ano') {
+            if (mode === 'denni') {
+              const jeDnes = denNormalized === dnes;
+              const jePrenesene = prenest?.toLowerCase().trim() === 'ano' && !isStala;
+              const jeStala = isStala;
+              zobrazit = jeDnes || jePrenesene || jeStala;
+            } else {
+              zobrazit = !isStala;
+            }
+          }
+      
+          if (zobrazit) {
+            if (!menuByDay[denNormalized]) menuByDay[denNormalized] = {};
+            if (!menuByDay[denNormalized][kategorie]) menuByDay[denNormalized][kategorie] = [];
+            menuByDay[denNormalized][kategorie].push({ nazev, gramaz, cena, cenaPul, alergeny });
+          }
+        });
+      
+        render(menuByDay);
+      }
 
 
     function prepniZdroj() {
