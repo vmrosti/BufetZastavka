@@ -387,11 +387,11 @@
     }
 
     function aktualizovat() {
-        fetch("http://localhost:8000/update", { method: "POST" })
-            .then(res => res.text())
-            .then(msg => document.getElementById("vysledek").innerText = msg)
-            .catch(err => document.getElementById("vysledek").innerText = "Chyba: " + err);
-    }
+  fetch("update.php", { method: "POST" })
+    .then(res => res.text())
+    .then(msg => document.getElementById("vysledek").innerText = msg)
+    .catch(err => document.getElementById("vysledek").innerText = "❌ Chyba: " + err);
+}
       
     function updateTitle() {
       const title = document.querySelector('.header h1');
