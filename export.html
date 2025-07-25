@@ -210,6 +210,24 @@
           dataSource = 'google';
         }
       }
+
+   function prepniZdroj() {
+  const nova = dataSource === 'google' ? 'excel' : 'google';
+  console.log('Přepínám zdroj na:', nova);
+
+  fetch('update-config.php?source=' + nova)
+    .then(r => r.text())
+    .then(() => {
+      dataSource = nova;
+      document.getElementById('zdrojTxt').textContent = dataSource;
+      loadData(); // přenačti data
+    })
+    .catch(err => {
+      alert("Nepodařilo se přepnout zdroj dat: " + err);
+    });
+}
+
+
      
    async function loadData() {
         let rows = [];
@@ -289,15 +307,7 @@
       }
 
 
-    function prepniZdroj() {
-        const nova = dataSource === 'google' ? 'excel' : 'google';
-         console.log('Přepínám zdroj na:', nova);
-        fetch('update-config.php?source=' + nova)
-          .then(r => r.text())
-          .then(() => {
-            location.reload(); // načte novou konfiguraci
-          });
-      }
+
 
       
     function render(menuByDay) {
