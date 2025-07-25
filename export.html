@@ -487,11 +487,12 @@ function downloadCleanPDF() {
         });
       }
   
-    window.onload = () => {
-      updateTitle();
-      await loadConfig();
-      loadData();
-    };
+    window.onload = async () => {
+        updateTitle();
+        await loadConfig(); // ← tohle musí být uvnitř async funkce
+        await loadData();
+      };
+
   </script>
   </div>
 </body>
