@@ -97,7 +97,9 @@
 
     async function loadConfig() {
       try {
-        const response = await fetch('config.json?_=' + new Date().getTime());
+        const response = await fetch('config.json?_=' + new Date().getTime(), {
+                                    cache: "no-store"
+        });
         const config = await response.json();
         dataSource = config.source || 'google';
       } catch (err) {
