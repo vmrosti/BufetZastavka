@@ -195,22 +195,19 @@
     if (!container.innerHTML) {
       container.innerHTML = '<p class="text-center text-red-600 text-xl">Pro dnešní den nejsou dostupná žádná jídla.</p>';
     }
-
-    // Volitelně: aktualizuj info o zdroji
-    const indicator = document.getElementById('source-indicator');
-    if (indicator) indicator.textContent = `Zdroj: ${dataSource}`;
-  } const indikace = document.getElementById('data-indicator');
+    
+    const indikace = document.getElementById('data-indicator');
       if (indikace) {
         indikace.style.backgroundColor = dataSource === 'excel' ? '#1D6F42' : '#4285F4'; 
         // např. žlutá pro Excel, tyrkysová pro Google
       }
+  } 
   catch (err) {
     document.getElementById('menu').innerHTML = '<p class="text-center text-red-600 text-xl">Nepodařilo se načíst jídelní lístek.</p>';
     console.error('Chyba:', err);
-  }
-    
+  }    
 }
-
+   
     function updateDateTime() {
       const now = new Date();
       const den = now.toLocaleDateString('cs-CZ', { weekday: 'long' });
