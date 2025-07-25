@@ -225,6 +225,30 @@
       setInterval(updateDateTime, 10000);
       setInterval(loadMenu, 60000);
     });
+   let posledniZdroj = null;
+    let inicializovano = false;
+    
+    async function hlidejZmenuZdroj() {
+      try {
+        const response = await fetch('config.json?_=' + new Date().getTime());
+        const config = await response.json();
+        const novyZdroj = config.source || 'google';
+    
+        if (inicializovano && novyZdroj !== posledniZdroj) {
+          console.log('Změna zdroje – reload.');
+          window.location.reload();
+        }
+    
+        posledniZdroj = novyZdroj;
+        inicializovano = true;
+      } catch (err) {
+        console.warn('Nepodařilo se zkontrolovat config.json:', err);
+      }
+    }
+    
+    // Spouštěj každých 5 sekund kontrolu změny zdroje
+    setInterval(hlidejZmenuZdroj, 5000);
+
   </script>
 
 </body>
