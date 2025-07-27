@@ -83,11 +83,17 @@
     }
     
     .item.hlavni {
-      background-color: #fffaf0;
+      background-color: #fffdfa;
       border-left: 5px solid #f6ad55;
       padding-left: 1vw;
       border-radius: 0.4vh;
     }
+    .section h2.hlavni-nadpis {
+        color: #c05621;
+        border-color: #ed8936;
+        font-weight: 800;
+        font-size: 2.2vh;
+      }
     @media screen and (max-width: 1000px) {
       .menu-wrapper {
         column-count: 2;
@@ -165,8 +171,8 @@
 
     const sekce = {
       'Polévka': [],
-      'Jídla na objednávku': [],
-      'Hlavní jídlo': [],       
+      'Hlavní jídlo': [],
+      'Jídla na objednávku': [],             
       'Bezmasá jídla na objednávku': [],
       'Saláty': [],    
       'Moučníky': []
@@ -188,6 +194,9 @@
       section.className = 'section';
       const header = document.createElement('h2');
       header.textContent = kategorie;
+      if (kategorie === 'Hlavní jídlo') {
+        header.classList.add('hlavni-nadpis');
+      }
       section.appendChild(header);
 
       const dnesni = jidla.filter(j => !j.prenest || j.prenest.toLowerCase() !== 'ano');
