@@ -55,13 +55,13 @@
       margin-bottom: 0.4vh;
     }
     .info {
-      font-size: 1.4vh;
-      color: #4a5568;
+      font-size: 1.7vh;
+      color: #8b6724;
     }
     .price {
       text-align: right;
       font-weight: bold;
-      color: #2f855a;
+      color: #46950c;
     }
 
     #data-indicator {
@@ -88,11 +88,16 @@
       padding-left: 1vw;
       border-radius: 0.4vh;
     }
+    .section.hlavni-sekce {
+  background-color: #fff5e0; /* Jemná oranžová */
+  border: 2px solid #f6ad55;
+}
+
     .section h2.hlavni-nadpis {
-        color: #c05621;
-        border-color: #ed8936;
-        font-weight: 800;
-        font-size: 2.2vh;
+        color: #9c4221;
+        border-color:  #dd6b20;
+        font-weight: 900;
+        font-size: 2.4vh;
       }
     @media screen and (max-width: 1000px) {
       .menu-wrapper {
@@ -192,6 +197,10 @@
 
       const section = document.createElement('div');
       section.className = 'section';
+
+      if (kategorie === 'Hlavní jídlo') {
+        section.classList.add('hlavni-sekce');
+      }
       const header = document.createElement('h2');
       header.textContent = kategorie;
       if (kategorie === 'Hlavní jídlo') {
